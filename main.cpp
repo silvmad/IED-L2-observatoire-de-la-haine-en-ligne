@@ -1,41 +1,62 @@
 #include <iostream>
-#include <QString>
-#include <QFile>
-#include <QTextStream>
+//#include <QFile>
+//#include <QTextStream>
 #include <QtDebug>
-#include <QtSql>
-//#include <QtCore/QtCore>
-
-#define MAX_PATTERNS 2048
+#include "main.h"
 
 using namespace std;
-
-typedef struct { QString regex; int type; uint padding; } pattern;
 
 int main(int argc, char** argv)
 {
     QCoreApplication a(argc, argv);
-    pattern patterns[MAX_PATTERNS];
-    QFile file("patterns");
+    QString patterns_file = "patterns";
+    QMap<int,QStringList> patterns;
+    load_patterns(patterns, patterns_file);
+    QSqlDatabase db = open_db();
+    QSqlQuery query;
+    while (true)
+    {
+        query.exec("select id, contenu from corpus1 where haineux is null order by id limit 10000;");
+        if (query.size() == 0)
+            break; // Pour plus tard : à la place se mettre en pause et attendre un signal du scraper pour recommencer
+        parse_result(query, patterns);
+        query.finish();
+    }
+    return 0;
+}
+
+int load_patterns(QMap<int, QStringList>& patterns, QString file_name)
+{
+    /* Remplit le dictionnaire patterns avec le contenu du fichier patterns. */
+    QFile file(file_name);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
     {
-        cout << "Erreur, imposible d'ouvrir le fichier patterns.";
+        cout << "Erreur, imposible d'ouvrir le fichier patterns."; //futur : prévenir l'interface
     }
     QTextStream stream(&file);
     QString line;
     QStringList list;
-    int nb_patterns = 0;
     while (!stream.atEnd())
     {
         line = stream.readLine();
         list = line.split('\t');
-        patterns[nb_patterns].regex = list[0];
-        patterns[nb_patterns++].type = list[1].toInt();
+        add_pattern(patterns, list[0], list[1].toInt());
     }
-    /*for (int j = 0; j < nb_patterns; j++)
+    return 0;
+}
+
+int add_pattern(QMap<int, QStringList>& patterns, QString regex, int type)
+{
+    if (!patterns.contains(type))
     {
-        qDebug("%s : %i\n", patterns[j].regex.toLocal8Bit().data(), patterns[j].type);
-    }*/
+        patterns.insert(type, QStringList());
+    }
+    patterns[type] << regex;
+    return 0;
+}
+
+QSqlDatabase open_db()
+{
     QSqlDatabase db = QSqlDatabase::addDatabase("QPSQL");
     db.setHostName("localhost");
     db.setUserName("haine_test_user");
@@ -45,62 +66,66 @@ int main(int argc, char** argv)
     {
         qDebug("Erreur : impossible d'ouvrir la base de données.");
     }
-    QSqlQuery query, update_hateful, update_type;
-    update_hateful.prepare("update corpus1 set haineux=:b where id=:id;");
-    update_type.prepare("insert into possede values (:id, :type);");
-    QString text, id;
-    bool hateful;
-    while (true)
-    {
-        if (!query.exec("select id, contenu from corpus1 where haineux is null limit 10000;"))
-            //if (!query.exec("select id, contenu from corpus1 where id = (select min(id) from corpus1 where haineux is null);"))
-        {
-            qDebug("Erreur : %s\n", query.lastError().text().toLocal8Bit().data());
-        }
-        while (query.next())
-        {
-            hateful = false;
-            if (!query.next())
-            {
-                qDebug("Erreur : la requète n'a rien renvoyé.");
+    return db;
+}
 
-                break;
-            }
-            id = query.value(0).toString();
-            text = query.value(1).toString();
-            //qDebug("Trouvé : %s, %s\n", id.toLocal8Bit().data(), text.toLocal8Bit().data());
-            for (int i = 0; i < nb_patterns; i++)
+void parse_result(QSqlQuery query, QMap<int,QStringList> patterns)
+{
+    bool hateful;
+    QString text, id;
+    QMap<int, QStringList>::iterator i;
+    while (query.next())
+    {
+        hateful = false;
+        id = query.value(0).toString();
+        text = query.value(1).toString();
+        for (i = patterns.begin(); i != patterns.end(); i++)
+        {
+            if (match(text, i.value()))
             {
-                QRegExp regex(patterns[i].regex);
-                if (text.contains(regex))
+                if (!hateful)
                 {
-                    if (!hateful)
-                    {
-                        hateful = true;
-                        update_hateful.addBindValue("true");
-                        update_hateful.addBindValue(id);
-                        update_hateful.exec();
-                        // éditer corpus1 pour mettre le champ haineux à 1.
-                    }
-                    // éditer Possède pour ajouter le type
-                    update_type.bindValue(":id", id); // VERIFIER le type attendu ici
-                    update_type.bindValue(":type", patterns[i].type); // /!\ ATTENTION /!\ modifier la table type pour ajouter une clé entière !!
-                    update_type.exec();
+                    hateful = true;
+                    set_hateful(id, "true");
                 }
-            }
-            if (!hateful)
-            {
-                update_hateful.bindValue(":b", "false");
-                update_hateful.bindValue(":id", id);
-                if (!update_hateful.exec())
-                {
-                    cout << "Erreur : " << update_hateful.lastError().text().toStdString();
-                }
+                set_type(id, i.key());
             }
         }
-        /* Plus de messages à analyser.
-         * Se mettre en pause et attendre un signal du scraper.
-         */
+        if (!hateful)
+        {
+            set_hateful(id, "false");
+        }
+    }
+}
+
+int match(QString text, QStringList list)
+{
+    QRegExp regex;
+    for (int i = 0; i < list.size(); i++)
+    {
+        regex.setPattern(list[i]);
+        if (text.contains(regex))
+        {
+            return i + 1;
+        }
     }
     return 0;
+}
+
+void set_hateful(QString id, QString val)
+{
+    QSqlQuery update_hateful;
+    update_hateful.prepare("update corpus1 set haineux=:b where id=:id;");
+    update_hateful.bindValue(":b", val);
+    update_hateful.bindValue(":id", id);
+    update_hateful.exec();
+}
+
+void set_type(QString id, int type)
+{
+    QSqlQuery update_type;
+    update_type.prepare("insert into possede values (:id, :type);");
+    update_type.bindValue(":id", id);
+    update_type.bindValue(":type", type);
+    update_type.exec();
 }
