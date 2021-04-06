@@ -24,7 +24,7 @@ app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP],
 app.server.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # connecter à la bdd
-app.server.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://postgres:Rahma2011@localhost/test"
+app.server.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://postgres:mdp@localhost/nombdd"
 
 db = SQLAlchemy(app.server)
 # récupérer le contenu de la BDD
