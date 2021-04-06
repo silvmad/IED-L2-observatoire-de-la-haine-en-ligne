@@ -1,5 +1,5 @@
 #**********************************************************************************************************#
-#  This program was written by Mickael D. Pernet on 03/10/2021                                             #
+#  This program was written by Mickael D. Pernet on 04/06/2021                                             #
 #  For the course of second year of computer science license: program realization                          #
 #                                                                                                          #
 #  This scrape program uses the libraries:                                                                 #
@@ -22,24 +22,22 @@
 #  text for tweets because tweets have a maximum size of 280 characters, but these characters do not       #
 #  include @users, retweet specifications and links.                                                       #
 #                                                                                                          #
-#  Twitter Scraper version 1.12:                                                                           #
+#  Twitter Scraper version 1.13:                                                                           #
 #        Functional version for terminal - tested under Ubuntu 20.x                                        #
-#            Add   - error catching in logfile                                                             #
-#            fixed - empty line in config                                                                  #
-#                  - recording error & always log problem due to cursor                                    # 
-#                   (psycopg2.errors.InFailedSqlTransaction)                                               #
-#                  - size problem for Contenu                                                              #
-#                   (psycopg2.errors.StringDataRightTruncation)                                            #
-#  Next: No duplictates, preparation for integration into the project  ...                                 #
+#            Add   - no irrevelant duplicate                                                               #
+#            fixed - truncated retweet content                                                             #
+#  Next: preparation for integration into the project  ...                                                 #
 #                                                                                                          #
 #**********************************************************************************************************#                                   
-                
+
 import tweepy
 import psycopg2
 import datetime
 import time
 import os
 import sys
+
+
 
 # function for loading config setting
 def load_config(dictionnaire):
@@ -52,7 +50,7 @@ def load_config(dictionnaire):
 
 def check_rate(golist, interval):
      elements = 0
-     with open("goliste.txt", 'r') as flux:
+     with open(golist, 'r') as flux:
           for ligne in flux:
                elements = elements + 1
      return (900.0/interval) * elements 
@@ -106,6 +104,8 @@ Current_ID = MAX +1
 #loop on interval
 start = round(time.time())
 modulo_start = start%T_INTERVAL
+nbr_tweet = config.get("nbre_tweet")
+bdd_table = config.get("Bdd_table")
 
 if(check_rate("goliste.txt", T_INTERVAL) > T_RATE):
      print(f"The number of expressions to search with the given interval exceeds the allowed limits")
@@ -123,35 +123,41 @@ else:
                     for ligne in flux:
                          motcle = ligne.replace('\n', '')
                          print(f"\tSearch for {motcle}")
-                         #fixed v1.12 nul from golist
                          if((len(motcle) != 0) and (motcle.count(" ") < len(motcle))):
                          #search loop on golist
-                              for tweet in api.search(q=motcle, lang="fr", result_type='recent', count=100, tweet_mode='extended'):
-                                   tweetsafe = tweet.full_text.replace("\n", "")
+                              for tweet in api.search(q=motcle, lang="fr", result_type='recent', count=nbr_tweet , tweet_mode='extended'):
+                                   #fixed 1.13: add tweet or retweet content
+                                   if hasattr(tweet,'retweeted_status'):
+                                        tweetsafe = tweet.retweeted_status.full_text.replace("\n", "")
+                                   else:
+                                        tweetsafe = tweet.full_text.replace("\n", "")
                                    tweetsafe = tweetsafe.replace("'", '"')
                                    #recording in DB or json recovery log
-                                   try:
-                                        cur.execute(f"INSERT INTO {BDDTABLE} (ID, Contenu, Date) VALUES ({Current_ID}, '{tweetsafe}', '{tweet.created_at}')")
-                                        Current_ID = Current_ID + 1
-                                        c.commit()
-                                   except:
-                                        print("\tFailed to save to database")
-                                        #error catch for debuggin and logsave
-                                        erreur_s = sys.exc_info()
-                                        typerr = u"%s" % (erreur_s[0])
-                                        typerr = typerr[typerr.find("'")+1:typerr.rfind("'")]
-                                        msgerr = u"%s" % (erreur_s[1])
-                                        logfile.write(f'\t{{\n\t\t"key": {id_erreur},\n\t\t"error": "{typerr}",\n\t\t"date": "{tweet.created_at}",\n\t\t"msg": "{tweetsafe}"\n\t}},\n')         
-                                        id_erreur = id_erreur +1
-                                        #fixed v1.12 cursor error
-                                        c.rollback()
+                                   #add 1.13: no record if it's a duplicate one
+                                   cur.execute(f"SELECT count(*) FROM {bdd_table} WHERE Contenu LIKE '{tweetsafe}%' AND Date LIKE '{str(tweet.created_at)}';")
+                                   duplicate_test = cur.fetchone()
+                                   if(duplicate_test[0] == 0):
+                                        try:
+                                             cur.execute(f"INSERT INTO {BDDTABLE} (ID, Contenu, Date) VALUES ({Current_ID}, '{tweetsafe}', '{tweet.created_at}')")
+                                             Current_ID = Current_ID + 1
+                                             c.commit()
+                                        except:
+                                             print("\tFailed to save to database")
+                                             #error catch for debuggin and logsave
+                                             erreur_s = sys.exc_info()
+                                             typerr = u"%s" % (erreur_s[0])
+                                             typerr = typerr[typerr.find("'")+1:typerr.rfind("'")]
+                                             msgerr = u"%s" % (erreur_s[1])
+                                             logfile.write(f'\t{{\n\t\t"key": {id_erreur},\n\t\t"error": "{typerr}",\n\t\t"date": "{tweet.created_at}",\n\t\t"msg": "{tweetsafe}"\n\t}},\n')         
+                                             id_erreur = id_erreur +1
+                                             c.rollback()
                logfile.write("  ]\n}")
                logfile.close()
                #no empty log
                if(id_erreur == 1):
                     os.remove(logname)
                else:
-                    erreur = 1
+                    id_erreur = 1
                print("\tLoop complete, wait for the end of the interval")
                print("\t-----------------------------------------------------------------------------------------------------------")
           else:
