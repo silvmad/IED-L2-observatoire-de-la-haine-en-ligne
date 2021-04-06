@@ -1,3 +1,5 @@
+from datetime import date
+
 import dash
 import dash_bootstrap_components as dbc
 import dash_core_components as dcc
@@ -5,19 +7,29 @@ import dash_html_components as html
 import pandas as pd
 import plotly.express as px
 from dash.dependencies import Output, Input
-from datetime import date
 
-df = pd.read_csv("donnees.csv")
-#dm= df.sort_values(by='type')
-#dm= df.groupby('type','Date').count().reset_index()
-#print(dm)
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
 
 
-# https://www.bootstrapcdn.com/bootswatch/
+#utilisation du serveur flask
+server = Flask(__name__)
+#lancer l'application
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP],
                 meta_tags=[{'name': 'viewport',
-                            'content': 'width=device-width, initial-scale=1.0'}]
-                )
+                            'content': 'width=device-width, initial-scale=1.0'}])
+
+# app = dash.Dash(__name__, server=server, suppress_callback_exceptions=True)
+
+app.server.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# connecter à la bdd
+app.server.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://postgres:Rahma2011@localhost/test"
+
+db = SQLAlchemy(app.server)
+# récupérer le contenu de la BDD
+df = pd.read_sql_table('donnees', con=db.engine)
+
 
 
 # Layout section: Bootstrap (https://hackerthemes.com/bootstrap-cheatsheet/)
@@ -37,11 +49,11 @@ app.layout = dbc.Container([
                 max_date_allowed=date(2021, 2, 25),
                 initial_visible_month=date(2020, 12, 1),
                 end_date=date(2021, 2, 25),
-    ),
+            ),
         ]),
         ),
         dbc.Col(html.Div(id='output-container-date-picker-range')
-),
+                ),
     ]),
 
     dbc.Row([
@@ -61,23 +73,23 @@ app.layout = dbc.Container([
 
         dbc.Col([
             dcc.Dropdown(id='my-dpdn2', multi=True, value=['homophobie', 'mysogynie'],
-                         options=[{'label':x, 'value':x}
+                         options=[{'label': x, 'value': x}
                                   for x in sorted(df['type'].unique())],
                          ),
             dcc.Graph(id='line-fig2', figure={})
-        ], #width={'size':5, 'offset':0, 'order':2},
-           xs=12, sm=12, md=12, lg=5, xl=5
+        ],  # width={'size':5, 'offset':0, 'order':2},
+            xs=12, sm=12, md=12, lg=5, xl=5
         ),
         dbc.Col([
             html.H3("choisissez un mot-clé:",
-                   style={"textDecoration": "underline"}),
+                    style={"textDecoration": "underline"}),
             dcc.Dropdown(id='my-checklist', multi=True, value=['pute', 'pd'],
-                         options=[{'label':x, 'value':x}
+                         options=[{'label': x, 'value': x}
                                   for x in sorted(df['mot'].unique())],
                          ),
             dcc.Graph(id='my-hist', figure={}),
-        ], #width={'size':5, 'offset':1},
-           xs=12, sm=12, md=12, lg=5, xl=5
+        ],
+            xs=12, sm=12, md=12, lg=5, xl=5
         ),
     ], align="center")
 
@@ -87,16 +99,13 @@ app.layout = dbc.Container([
 # Callback section: connecting the components
 # ************************************************************************
 # Line chart - Single
-
-
-# pie chart - multiple
 @app.callback(
     Output('line-fig2', 'figure'),
     Input('my-dpdn2', 'value')
 )
 def update_graph(stock_slctd):
     dff = df[df['type'].isin(stock_slctd)]
-    figln2 = px.pie(dff, names='type',hole=.5)
+    figln2 = px.pie(dff, names='type', hole=.5)
     return figln2
 
 
@@ -108,11 +117,12 @@ def update_graph(stock_slctd):
 def update_graph(stock_slctd):
     dff = df[df['mot'].isin(stock_slctd)]
     dfm = dff.groupby('mot').count().reset_index()
-    #print(dff)
-    #dff= df['type'].value_counts().aggregate({'decompte': pd.Series.nunique})
-    #dff = dff[dff['Date']=='2020-12-03']
+    # print(dff)
+    # dff= df['type'].value_counts().aggregate({'decompte': pd.Series.nunique})
+    # dff = dff[dff['Date']=='2020-12-03']
     fighist = px.histogram(dfm, x='mot', y='Hate')
     return fighist
+
 
 @app.callback(
     Output('line', 'figure'),
@@ -123,6 +133,7 @@ def update_graph(stock_slctd):
     dfm = dff.groupby(['type', 'Date']).size().reset_index(name='count')
     figln2 = px.line(dfm, x='Date', y='count', color='type')
     return figln2
+
 
 @app.callback(
     dash.dependencies.Output('output-container-date-picker-range', 'children'),
@@ -143,5 +154,6 @@ def update_output(start_date, end_date):
     else:
         return string_prefix
 
-if __name__=='__main__':
-    app.run_server(debug=True, port=3500)
+
+if __name__ == '__main__':
+    app.run_server(debug=True, port=3300)
