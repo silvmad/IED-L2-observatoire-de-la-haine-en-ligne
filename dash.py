@@ -24,11 +24,23 @@ app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP],
 app.server.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # connecter à la bdd
-app.server.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://postgres:mdp@localhost/nombdd"
+app.server.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://postgres:Rahma2011@localhost/haine_test1"
 
 db = SQLAlchemy(app.server)
-# récupérer le contenu de la BDD
-df = pd.read_sql_table('donnees', con=db.engine)
+# préparation de la dataframe en récupérant et manipulant le contenu de la BDD avec pandas
+df1 = pd.read_sql_table('corpus1', con=db.engine)
+df2 = pd.read_sql_table('possede', con=db.engine)
+df3 = pd.read_sql_table('type', con=db.engine)
+df5 = pd.read_sql_table('mot_clé', con=db.engine)
+df6 = pd.read_sql_table('contient', con=db.engine)
+
+df4 = pd.merge(df2, df1[['id', 'date','haineux']], on="id")
+df7 = pd.merge(df4, df3, on="id_type")
+df8 = pd.merge(df7, df6, on="id")
+df = pd.merge(df8, df5, on="id_mot_clé")
+print(df.columns)
+
+
 
 
 
@@ -59,12 +71,12 @@ app.layout = dbc.Container([
     dbc.Row([
 
         dbc.Col([
-            dcc.Dropdown(id='menu', multi=True, value=['homophobie', 'misogynie'],
+            dcc.Dropdown(id='menu', multi=True, value=['homophobie', 'racisme'],
                          options=[{'label': x, 'value': x}
-                                  for x in sorted(df['type'].unique())],
+                                  for x in sorted(df['nom_type'].unique())],
                          ),
             dcc.Graph(id='line', figure={})
-        ],  # width={'size':5, 'offset':0, 'order':2},
+        ],
             xs=12, sm=12, md=12, lg=12, xl=12
         ),
     ], align="center"),  # Vertical: start, center, end
@@ -72,18 +84,18 @@ app.layout = dbc.Container([
     dbc.Row([
 
         dbc.Col([
-            dcc.Dropdown(id='my-dpdn2', multi=True, value=['homophobie', 'mysogynie'],
+            dcc.Dropdown(id='my-dpdn2', multi=True, value=['homophobie', 'racisme'],
                          options=[{'label': x, 'value': x}
-                                  for x in sorted(df['type'].unique())],
+                                  for x in sorted(df['nom_type'].unique())],
                          ),
             dcc.Graph(id='line-fig2', figure={})
-        ],  # width={'size':5, 'offset':0, 'order':2},
+        ],
             xs=12, sm=12, md=12, lg=5, xl=5
         ),
         dbc.Col([
             html.H3("choisissez un mot-clé:",
                     style={"textDecoration": "underline"}),
-            dcc.Dropdown(id='my-checklist', multi=True, value=['pute', 'pd'],
+            dcc.Dropdown(id='my-checklist', multi=True, value=['bougnoule', 'pd'],
                          options=[{'label': x, 'value': x}
                                   for x in sorted(df['mot'].unique())],
                          ),
@@ -104,8 +116,8 @@ app.layout = dbc.Container([
     Input('my-dpdn2', 'value')
 )
 def update_graph(stock_slctd):
-    dff = df[df['type'].isin(stock_slctd)]
-    figln2 = px.pie(dff, names='type', hole=.5)
+    dff = df[df['nom_type'].isin(stock_slctd)]
+    figln2 = px.pie(dff, names='nom_type', hole=.5)
     return figln2
 
 
@@ -120,7 +132,7 @@ def update_graph(stock_slctd):
     # print(dff)
     # dff= df['type'].value_counts().aggregate({'decompte': pd.Series.nunique})
     # dff = dff[dff['Date']=='2020-12-03']
-    fighist = px.histogram(dfm, x='mot', y='Hate')
+    fighist = px.histogram(dfm, x='mot', y='haineux')
     return fighist
 
 
@@ -129,9 +141,9 @@ def update_graph(stock_slctd):
     Input('menu', 'value')
 )
 def update_graph(stock_slctd):
-    dff = df[df['type'].isin(stock_slctd)]
-    dfm = dff.groupby(['type', 'Date']).size().reset_index(name='count')
-    figln2 = px.line(dfm, x='Date', y='count', color='type')
+    dff = df[df['nom_type'].isin(stock_slctd)]
+    dfm = dff.groupby(['nom_type', 'date']).size().reset_index(name='count')
+    figln2 = px.line(dfm, x='date', y='count', color='nom_type')
     return figln2
 
 
@@ -156,4 +168,4 @@ def update_output(start_date, end_date):
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True, port=3300)
+    app.run_server(debug=True, port=3500)
