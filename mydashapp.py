@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import datetime as dt
 
 import dash
 import dash_bootstrap_components as dbc
@@ -16,7 +16,7 @@ from flask_sqlalchemy import SQLAlchemy
 server = Flask(__name__)
 #lancer l'application
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP],
-                meta_tags=[{'name': 'viewport',
+                     meta_tags=[{'name': 'viewport',
                             'content': 'width=device-width, initial-scale=1.0'}])
 
 # app = dash.Dash(__name__, server=server, suppress_callback_exceptions=True)
@@ -38,38 +38,39 @@ df4 = pd.merge(df2, df1[['id', 'date','haineux']], on="id")
 df7 = pd.merge(df4, df3, on="id_type")
 df8 = pd.merge(df7, df6, on="id")
 df = pd.merge(df8, df5, on="id_mot_clé")
-print(df.columns)
-
-
-
+#convertir la colonne date écrite en string dans la bdd en date
+df['date'] = pd.to_datetime(df['date'])
+df.set_index('date', inplace=True)
 
 
 # Layout section: Bootstrap (https://hackerthemes.com/bootstrap-cheatsheet/)
+#utilisation de bootstrap
 # ************************************************************************
+
+# titre
 app.layout = dbc.Container([
     dbc.Row(
         dbc.Col(html.H1("Dashboard detection de haine sur twitter",
                         className='text-center text-primary mb-4'),
                 width=12)
     ),
-
+    # calendrier
     dbc.Row([
         dbc.Col(html.Div([
             dcc.DatePickerRange(
                 id='my-date-picker-range',
-                min_date_allowed=date(2017, 8, 5),
-                max_date_allowed=date(2021, 2, 25),
-                initial_visible_month=date(2020, 12, 1),
-                end_date=date(2021, 2, 25),
+                min_date_allowed=dt(2017, 8, 5),
+                max_date_allowed=dt(2021, 5, 25),
+                initial_visible_month=dt(2021, 3, 1),
+                end_date=dt(2021, 12, 25),
             ),
         ]),
         ),
         dbc.Col(html.Div(id='output-container-date-picker-range')
                 ),
     ]),
-
+    # menu déroulant pour le pie_chart
     dbc.Row([
-
         dbc.Col([
             dcc.Dropdown(id='menu', multi=True, value=['homophobie', 'racisme'],
                          options=[{'label': x, 'value': x}
@@ -81,8 +82,8 @@ app.layout = dbc.Container([
         ),
     ], align="center"),  # Vertical: start, center, end
 
+    # menu déroulant pour l'histogramme
     dbc.Row([
-
         dbc.Col([
             dcc.Dropdown(id='my-dpdn2', multi=True, value=['homophobie', 'racisme'],
                          options=[{'label': x, 'value': x}
@@ -109,40 +110,56 @@ app.layout = dbc.Container([
 
 
 # Callback section: connecting the components
+# connecter les composantes html (menu , calendrier) aux graphiques
 # ************************************************************************
 # Line chart - Single
 @app.callback(
     Output('line-fig2', 'figure'),
-    Input('my-dpdn2', 'value')
+    [Input('my-dpdn2', 'value'),
+     Input('my-date-picker-range', 'start_date'),
+     Input('my-date-picker-range', 'end_date')
+     ]
 )
-def update_graph(stock_slctd):
+def update_graph(stock_slctd,start_date, end_date):
     dff = df[df['nom_type'].isin(stock_slctd)]
+    dff = dff.loc[start_date:end_date]
+    #utilisation de plotly express pour la création de graphique
     figln2 = px.pie(dff, names='nom_type', hole=.5)
     return figln2
+
 
 
 # Histogram
 @app.callback(
     Output('my-hist', 'figure'),
-    Input('my-checklist', 'value')
+    [Input('my-checklist', 'value'),
+     Input('my-date-picker-range', 'start_date'),
+     Input('my-date-picker-range', 'end_date')
+     ]
+
 )
-def update_graph(stock_slctd):
+def update_graph(stock_slctd,start_date, end_date):
     dff = df[df['mot'].isin(stock_slctd)]
+    dff = dff.loc[start_date:end_date]
     dfm = dff.groupby('mot').count().reset_index()
-    # print(dff)
-    # dff= df['type'].value_counts().aggregate({'decompte': pd.Series.nunique})
-    # dff = dff[dff['Date']=='2020-12-03']
+    # utilisation de plotly express pour la création de graphique
     fighist = px.histogram(dfm, x='mot', y='haineux')
     return fighist
 
 
 @app.callback(
     Output('line', 'figure'),
-    Input('menu', 'value')
+    [Input('menu', 'value'),
+     Input('my-date-picker-range', 'start_date'),
+     Input('my-date-picker-range', 'end_date')
+     ]
+
 )
-def update_graph(stock_slctd):
+def update_graph(stock_slctd,start_date, end_date):
     dff = df[df['nom_type'].isin(stock_slctd)]
+    dff = dff.loc[start_date:end_date]
     dfm = dff.groupby(['nom_type', 'date']).size().reset_index(name='count')
+    # utilisation de plotly express pour la création de graphique
     figln2 = px.line(dfm, x='date', y='count', color='nom_type')
     return figln2
 
@@ -154,11 +171,11 @@ def update_graph(stock_slctd):
 def update_output(start_date, end_date):
     string_prefix = 'vous avez choisi: '
     if start_date is not None:
-        start_date_object = date.fromisoformat(start_date)
+        start_date_object = dt.fromisoformat(start_date)
         start_date_string = start_date_object.strftime('%B %d, %Y')
         string_prefix = string_prefix + 'début de période: ' + start_date_string + ' | '
     if end_date is not None:
-        end_date_object = date.fromisoformat(end_date)
+        end_date_object = dt.fromisoformat(end_date)
         end_date_string = end_date_object.strftime('%B %d, %Y')
         string_prefix = string_prefix + 'fin de période: ' + end_date_string
     if len(string_prefix) == len('vous avez choisi: '):
@@ -168,4 +185,4 @@ def update_output(start_date, end_date):
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True, port=3500)
+    app.run_server(debug=True, port=3200)
