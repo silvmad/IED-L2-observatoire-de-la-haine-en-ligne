@@ -11,6 +11,10 @@ from dash.dependencies import Output, Input
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 
+from wordcloud import WordCloud
+import base64
+from io import BytesIO
+
 
 #utilisation du serveur flask
 server = Flask(__name__)
@@ -128,7 +132,15 @@ app.layout = dbc.Container([
         ],
             xs=12, sm=12, md=12, lg=5, xl=5
         ),
-    ], align="center")
+    ], align="center"),
+    # nuage de mot
+    dbc.Row([
+        dbc.Col([
+            html.Div(html.Img(id="image_wc"),
+                     style={'width':'75%', 'margin':25, 'textAlign': 'center'})
+               ], xs=12, sm=12, md=12, lg=12, xl=12
+        ),
+    ]),
 
 ], fluid=True)
 
@@ -136,7 +148,7 @@ app.layout = dbc.Container([
 # Callback section: connecting the components
 # connecter les composantes html (menu , calendrier) aux graphiques
 # ************************************************************************
-# Line chart - Single
+# pie chart
 @app.callback(
     Output('line-fig2', 'figure'),
     [Input('my-dpdn2', 'value'),
@@ -170,7 +182,7 @@ def update_graph(stock_slctd,start_date, end_date):
     fighist = px.histogram(dfm, x='mot', y='haineux')
     return fighist
 
-
+#line chart
 @app.callback(
     Output('line', 'figure'),
     [Input('menu', 'value'),
@@ -187,11 +199,11 @@ def update_graph(stock_slctd,start_date, end_date):
     figln2 = px.line(dfm, x='date', y='count', color='nom_type')
     return figln2
 
-
+# line chart
 @app.callback(
-    dash.dependencies.Output('output-container-date-picker-range', 'children'),
-    [dash.dependencies.Input('my-date-picker-range', 'start_date'),
-     dash.dependencies.Input('my-date-picker-range', 'end_date')])
+    Output('output-container-date-picker-range', 'children'),
+    [Input('my-date-picker-range', 'start_date'),
+     Input('my-date-picker-range', 'end_date')])
 def update_output(start_date, end_date):
     string_prefix = 'vous avez choisi: '
     if start_date is not None:
@@ -206,6 +218,26 @@ def update_output(start_date, end_date):
         return 'choisissez une date'
     else:
         return string_prefix
+# fonction de création de l'image du nuage de mots
+def plot_wordcloud(data):
+    d ={mot: n
+        for mot in data['mot']
+        for n in data['haineux']}
+    wc = WordCloud(background_color='black', width=800, height=380)
+    wc.fit_words(d)
+    return wc.to_image()
+
+# callback liant le div à l'image du wordcloud
+@app.callback(
+    Output('image_wc', 'src'),
+    Input('image_wc', 'id'))
+def make_image(b):
+    dfm = df.groupby('mot').count().reset_index()
+    dfm = dfm[['mot','haineux']]
+    img = BytesIO()
+    plot_wordcloud(data=dfm).save(img, format='PNG')
+    return 'data:image/png;base64,{}'.format(base64.b64encode(img.getvalue()).decode())
+
 
 
 if __name__ == '__main__':
