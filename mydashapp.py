@@ -122,8 +122,6 @@ app.layout = dbc.Container([
             xs=12, sm=12, md=12, lg=5, xl=5
         ),
         dbc.Col([
-            html.H3("choisissez un mot-clé:",
-                    style={"textDecoration": "underline"}),
             dcc.Dropdown(id='my-checklist', multi=True, value=['bougnoule', 'pd'],
                          options=[{'label': x, 'value': x}
                                   for x in sorted(df['mot'].unique())],
@@ -136,7 +134,11 @@ app.layout = dbc.Container([
     # nuage de mot
     dbc.Row([
         dbc.Col([
-            html.Div(html.Img(id="image_wc"),
+            html.H3("Nuage de mots haineux",
+                    style={"textDecoration": "underline",'textAlign' : 'center'}),
+        ]),
+        dbc.Col([
+            html.Div(html.Img(id="image_wc", title='Nuage de mots haineux'),
                      style={'width':'75%', 'margin':25, 'textAlign': 'center'})
                ], xs=12, sm=12, md=12, lg=12, xl=12
         ),
@@ -156,11 +158,14 @@ app.layout = dbc.Container([
      Input('my-date-picker-range', 'end_date')
      ]
 )
-def update_graph(stock_slctd,start_date, end_date):
-    dff = df[df['nom_type'].isin(stock_slctd)]
+def update_graph(type,start_date, end_date):
+    dff = df[df['nom_type'].isin(type)]
     dff = dff.loc[start_date:end_date]
     #utilisation de plotly express pour la création de graphique
-    figln2 = px.pie(dff, names='nom_type', hole=.5)
+    figln2 = px.pie(dff, names='nom_type', hole=.5,
+    labels = {'nom_type': 'type de haine ',
+              }
+    )
     return figln2
 
 
@@ -174,12 +179,14 @@ def update_graph(stock_slctd,start_date, end_date):
      ]
 
 )
-def update_graph(stock_slctd,start_date, end_date):
-    dff = df[df['mot'].isin(stock_slctd)]
+def update_graph(mots,start_date, end_date):
+    dff = df[df['mot'].isin(mots)]
     dff = dff.loc[start_date:end_date]
-    dfm = dff.groupby('mot').count().reset_index()
     # utilisation de plotly express pour la création de graphique
-    fighist = px.histogram(dfm, x='mot', y='haineux')
+    fighist = px.histogram(dff, x='mot',
+                           labels = {'mot': 'mot haineux '
+                                     }
+    )
     return fighist
 
 #line chart
@@ -196,7 +203,11 @@ def update_graph(stock_slctd,start_date, end_date):
     dff = dff.loc[start_date:end_date]
     dfm = dff.groupby(['nom_type', 'date']).size().reset_index(name='count')
     # utilisation de plotly express pour la création de graphique
-    figln2 = px.line(dfm, x='date', y='count', color='nom_type')
+    figln2 = px.line(dfm, x='date', y='count', color='nom_type',
+                     labels= {'date': '',
+                              'count': 'nombre de mots haineux par type',
+                              }
+    )
     return figln2
 
 # line chart
