@@ -15,26 +15,28 @@ from wordcloud import WordCloud
 import base64
 from io import BytesIO
 
-
-#utilisation du serveur flask
+# utilisation du serveur flask
 server = Flask(__name__)
-#lancer l'application
+# lancer l'application
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP],
-                     meta_tags=[{'name': 'viewport',
+                meta_tags=[{'name': 'viewport',
                             'content': 'width=device-width, initial-scale=1.0'}])
 
 # app = dash.Dash(__name__, server=server, suppress_callback_exceptions=True)
 
 app.server.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+
 # function for loading config setting
 def load_config(dictionnaire):
-     with open("config.sys", 'r') as flux:
-          load = flux.readlines()
-          for ligne in load:
-                conf = ligne.replace("\n", "")
-                conf = conf.split("\t")
-                dictionnaire[conf[0]] = conf[1]
+    with open("config.sys", 'r') as flux:
+        load = flux.readlines()
+        for ligne in load:
+            conf = ligne.replace("\n", "")
+            conf = conf.split("\t")
+            dictionnaire[conf[0]] = conf[1]
+
+
 config = {}
 load_config(config)
 
@@ -43,10 +45,9 @@ USER = config.get("Bdd_login")
 PASSWORD = config.get("Bdd_secret")
 DATABASE = config.get("Bdd")
 
-
 # connecter à la bdd
 try:
-    app.server.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://%s:%s@%s/%s" % (USER,PASSWORD,HOST, DATABASE)
+    app.server.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://%s:%s@%s/%s" % (USER, PASSWORD, HOST, DATABASE)
 except:
     print("\tError during databse connexion")
 
@@ -59,18 +60,17 @@ df3 = pd.read_sql_table('type', con=db.engine)
 df5 = pd.read_sql_table('mot_clé', con=db.engine)
 df6 = pd.read_sql_table('contient', con=db.engine)
 
-df4 = pd.merge(df2, df1[['id', 'date','haineux']], on="id")
+df4 = pd.merge(df2, df1[['id', 'date', 'haineux']], on="id")
 df7 = pd.merge(df4, df3, on="id_type")
 df8 = pd.merge(df7, df6, on="id")
 df = pd.merge(df8, df5, on="id_mot_clé")
 
-#convertir la colonne date écrite en string dans la bdd en date
+# convertir la colonne date écrite en string dans la bdd en date
 df['date'] = pd.to_datetime(df['date'])
 df.set_index('date', inplace=True)
 
-
 # Layout section: Bootstrap (https://hackerthemes.com/bootstrap-cheatsheet/)
-#utilisation de bootstrap
+# utilisation de bootstrap
 # ************************************************************************
 
 # titre
@@ -131,16 +131,17 @@ app.layout = dbc.Container([
             xs=12, sm=12, md=12, lg=5, xl=5
         ),
     ], align="center"),
+
     # nuage de mot
     dbc.Row([
         dbc.Col([
             html.H3("Nuage de mots haineux",
-                    style={"textDecoration": "underline",'textAlign' : 'center'}),
+                    style={"textDecoration": "underline", 'textAlign': 'center'}),
         ]),
         dbc.Col([
             html.Div(html.Img(id="image_wc", title='Nuage de mots haineux'),
-                     style={'width':'75%', 'margin':25, 'textAlign': 'center'})
-               ], xs=12, sm=12, md=12, lg=12, xl=12
+                     style={'width': '75%', 'margin': 25, 'textAlign': 'center'})
+        ], xs=12, sm=12, md=12, lg=12, xl=12
         ),
     ]),
 
@@ -158,16 +159,15 @@ app.layout = dbc.Container([
      Input('my-date-picker-range', 'end_date')
      ]
 )
-def update_graph(type,start_date, end_date):
-    dff = df[df['nom_type'].isin(type)]
+def update_graph(nametype, start_date, end_date):
+    dff = df[df['nom_type'].isin(nametype)]
     dff = dff.loc[start_date:end_date]
-    #utilisation de plotly express pour la création de graphique
+    # utilisation de plotly express pour la création de graphique
     figln2 = px.pie(dff, names='nom_type', hole=.5,
-    labels = {'nom_type': 'type de haine ',
-              }
-    )
+                    labels={'nom_type': 'type de haine ',
+                            }
+                    )
     return figln2
-
 
 
 # Histogram
@@ -179,17 +179,18 @@ def update_graph(type,start_date, end_date):
      ]
 
 )
-def update_graph(mots,start_date, end_date):
+def update_graph(mots, start_date, end_date):
     dff = df[df['mot'].isin(mots)]
     dff = dff.loc[start_date:end_date]
     # utilisation de plotly express pour la création de graphique
     fighist = px.histogram(dff, x='mot',
-                           labels = {'mot': 'mot haineux '
-                                     }
-    )
+                           labels={'mot': 'mot haineux '
+                                   }
+                           )
     return fighist
 
-#line chart
+
+# line chart
 @app.callback(
     Output('line', 'figure'),
     [Input('menu', 'value'),
@@ -198,17 +199,18 @@ def update_graph(mots,start_date, end_date):
      ]
 
 )
-def update_graph(stock_slctd,start_date, end_date):
+def update_graph(stock_slctd, start_date, end_date):
     dff = df[df['nom_type'].isin(stock_slctd)]
     dff = dff.loc[start_date:end_date]
     dfm = dff.groupby(['nom_type', 'date']).size().reset_index(name='count')
     # utilisation de plotly express pour la création de graphique
     figln2 = px.line(dfm, x='date', y='count', color='nom_type',
-                     labels= {'date': '',
-                              'count': 'nombre de mots haineux par type',
-                              }
-    )
+                     labels={'date': '',
+                             'count': 'nombre de mots haineux par type',
+                             }
+                     )
     return figln2
+
 
 # line chart
 @app.callback(
@@ -229,26 +231,28 @@ def update_output(start_date, end_date):
         return 'choisissez une date'
     else:
         return string_prefix
+
+
 # fonction de création de l'image du nuage de mots
 def plot_wordcloud(data):
-    d ={mot: n
-        for mot in data['mot']
-        for n in data['haineux']}
+    d = {mot: n
+         for mot in data['mot']
+         for n in data['haineux']}
     wc = WordCloud(background_color='black', width=800, height=380)
     wc.fit_words(d)
     return wc.to_image()
+
 
 # callback liant le div à l'image du wordcloud
 @app.callback(
     Output('image_wc', 'src'),
     Input('image_wc', 'id'))
-def make_image(b):
+def make_image():
     dfm = df.groupby('mot').count().reset_index()
-    dfm = dfm[['mot','haineux']]
+    dfm = dfm[['mot', 'haineux']]
     img = BytesIO()
     plot_wordcloud(data=dfm).save(img, format='PNG')
     return 'data:image/png;base64,{}'.format(base64.b64encode(img.getvalue()).decode())
-
 
 
 if __name__ == '__main__':
