@@ -6,7 +6,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 
 
-# utilisation du serveur flask
+# utilisation du serveur flask pour la bdd
 server = Flask(__name__)
 # lancer l'application
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP],
@@ -56,6 +56,15 @@ df7 = pd.merge(df4, df3, on="id_type")
 df8 = pd.merge(df7, df6, on="id")
 df = pd.merge(df8, df5, on="id_mot_clé")
 
+#dfm = df.groupby('mot').size().reset_index(name='count')
+#print(dfm[:10])
+#dfm = dfm[['mot','count']]
+
+
+
 # convertir la colonne date écrite en string dans la bdd en date
-df['date'] = pd.to_datetime(df['date'])
+df['date'] = pd.to_datetime(df['date'].map(lambda t: t[:-6]))
 df.set_index('date', inplace=True)
+
+
+#dfm = df.groupby(['nom_type', 'date']).size().reset_index(name='count')

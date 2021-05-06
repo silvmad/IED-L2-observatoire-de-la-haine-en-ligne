@@ -5,7 +5,7 @@ T_api_token_secret	x
 Bdd_host	localhost
 Bdd_login	postgres
 Bdd_secret	Rahma2011
-Bdd	haine_test1
+Bdd	haine_base
 Bdd_table	x
 langue	fr
 nbre_tweet	100

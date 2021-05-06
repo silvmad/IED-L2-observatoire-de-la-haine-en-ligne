@@ -39,11 +39,11 @@ def update_graph(nametype, start_date, end_date):
     dff = df[df['nom_type'].isin(nametype)]
     dff = dff.loc[start_date:end_date]
     # utilisation de plotly express pour la création de graphique
-    figln2 = px.pie(dff, names='nom_type', hole=.5,
+    pifig = px.pie(dff, names='nom_type', hole=.5,
                     labels={'nom_type': 'type de haine ',
                             }
                     )
-    return figln2
+    return pifig
 
 
 # Histogram
@@ -57,14 +57,13 @@ def update_graph(nametype, start_date, end_date):
 )
 def update_graph(mots, start_date, end_date):
     dff = df[df['mot'].isin(mots)]
-    dff = dff.loc[start_date:end_date]
+    dff = dff.sort_index().loc[start_date:end_date]
     # utilisation de plotly express pour la création de graphique
     fighist = px.histogram(dff, x='mot',
                            labels={'mot': 'mot haineux '
                                    }
                            )
     return fighist
-
 
 # line chart
 @app.callback(
@@ -77,15 +76,15 @@ def update_graph(mots, start_date, end_date):
 )
 def update_graph(nametype, start_date, end_date):
     dff = df[df['nom_type'].isin(nametype)]
-    dff = dff.loc[start_date:end_date]
+    dff = dff.sort_index().loc[start_date:end_date]
     dfm = dff.groupby(['nom_type', 'date']).size().reset_index(name='count')
     # utilisation de plotly express pour la création de graphique
-    figln2 = px.line(dfm, x='date', y='count', color='nom_type',
+    figln = px.line(dfm, x='date', y='count', color='nom_type',
                      labels={'date': '',
                              'count': 'nombre de mots haineux par type',
                              }
                      )
-    return figln2
+    return figln
 
 
 # line chart
@@ -111,11 +110,11 @@ def update_output(start_date, end_date):
 
 # fonction de création de l'image du nuage de mots
 def plot_wordcloud(data):
-    d = {mot: n
-         for mot in data['mot']
-         for n in data['haineux']}
-    wc = WordCloud(background_color='black', width=800, height=380)
-    wc.fit_words(d)
+    d = {a: x for a, x in data.values}
+    #wc = WordCloud(background_color='black', width=800, height=380)
+    wc = WordCloud(background_color='black', width=800, height=380).generate_from_frequencies(frequencies=d)
+    print(sorted(d.items(), key=lambda t: t[1]))
+    #wc.fit_words(d)
     return wc.to_image()
 
 
@@ -124,11 +123,14 @@ def plot_wordcloud(data):
     Output('image_wc', 'src'),
     Input('image_wc', 'id'))
 def make_image(b):
-    dfm = df.groupby('mot').count().reset_index()
-    dfm = dfm[['mot', 'haineux']]
+    dfm = df.groupby('mot').size().reset_index(name='count')
+    dfm = dfm[['mot', 'count']]
     img = BytesIO()
     plot_wordcloud(data=dfm).save(img, format='PNG')
     return 'data:image/png;base64,{}'.format(base64.b64encode(img.getvalue()).decode())
+
+
+
 
 
 if __name__ == '__main__':
