@@ -107,14 +107,12 @@ def update_output(start_date, end_date):
     else:
         return string_prefix
 
-
+# créer et connecter le wordcloud
+# ************************************************************************
 # fonction de création de l'image du nuage de mots
 def plot_wordcloud(data):
     d = {a: x for a, x in data.values}
-    #wc = WordCloud(background_color='black', width=800, height=380)
     wc = WordCloud(background_color='black', width=800, height=380).generate_from_frequencies(frequencies=d)
-    print(sorted(d.items(), key=lambda t: t[1]))
-    #wc.fit_words(d)
     return wc.to_image()
 
 
