@@ -45,20 +45,21 @@ except:
 db = SQLAlchemy(app.server)
 
 # préparation de la dataframe en récupérant et manipulant le contenu de la BDD avec pandas
-df1 = pd.read_sql_table('corpus1', con=db.engine)
-df2 = pd.read_sql_table('possede', con=db.engine)
-df3 = pd.read_sql_table('type', con=db.engine)
-df5 = pd.read_sql_table('mot_clé', con=db.engine)
-df6 = pd.read_sql_table('contient', con=db.engine)
 
-df4 = pd.merge(df2, df1[['id', 'date', 'haineux']], on="id")
-df7 = pd.merge(df4, df3, on="id_type")
-df8 = pd.merge(df7, df6, on="id")
-df = pd.merge(df8, df5, on="id_mot_clé")
+table_liste =['corpus1','possede','type', 'mot_clé', 'contient']
+dic = {}
+def read_table(liste):
+    for table in liste:
+            dic[table] = pd.read_sql_table(table, con=db.engine)
 
-#dfm = df.groupby('mot').size().reset_index(name='count')
-#print(dfm[:10])
-#dfm = dfm[['mot','count']]
+
+read_table(table_liste)
+
+df = pd.merge(dic['possede'], dic['corpus1'][['id', 'date','haineux']], on="id")
+df = pd.merge(df, dic['type'], on="id_type")
+df = pd.merge(df, dic['contient'], on="id")
+df = pd.merge(df, dic['mot_clé'], on="id_mot_clé")
+
 
 
 
@@ -66,5 +67,3 @@ df = pd.merge(df8, df5, on="id_mot_clé")
 df['date'] = pd.to_datetime(df['date'].map(lambda t: t[:-6]))
 df.set_index('date', inplace=True)
 
-
-#dfm = df.groupby(['nom_type', 'date']).size().reset_index(name='count')
