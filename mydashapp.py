@@ -8,22 +8,6 @@ from io import BytesIO
 from dashcard import *
 
 
-# Layout section: Bootstrap (https://hackerthemes.com/bootstrap-cheatsheet/)
-# utilisation de bootstrap
-# ************************************************************************
-
-app.layout = dbc.Container([
-
-    dbc.Row([
-        dbc.Col([card_titre], xs=12, sm=12, md=12, lg=12, xl=12),
-        dbc.Col([card_graphique], xs=12, sm=12, md=12, lg=12, xl=12),
-        dbc.Col([card_pie], xs=12, sm=12, md=12, lg=6, xl=6),
-        dbc.Col([card_hist], xs=12, sm=12, md=12, lg=6, xl=6),
-        dbc.Col([card_img], xs=12, sm=12, md=12, lg=12, xl=12),
-    ], align='center'),
-], fluid=True)
-
-
 # Callback section: connecting the components
 # connecter les composantes html (menu , calendrier) aux graphiques
 # ************************************************************************
@@ -37,11 +21,14 @@ app.layout = dbc.Container([
 )
 def update_graph(nametype, start_date, end_date):
     dff = df[df['nom_type'].isin(nametype)]
-    dff = dff.loc[start_date:end_date]
+    dff = dff.sort_index().loc[start_date:end_date]
     # utilisation de plotly express pour la création de graphique
     pifig = px.pie(dff, names='nom_type', hole=.5,
                     labels={'nom_type': 'type de haine ',
-                            }
+                            },
+                    #color_discrete_sequence=["red", "blue", "orange","green"],
+                    template='plotly_dark'
+
                     )
     return pifig
 
@@ -61,7 +48,8 @@ def update_graph(mots, start_date, end_date):
     # utilisation de plotly express pour la création de graphique
     fighist = px.histogram(dff, x='mot',
                            labels={'mot': 'mot haineux '
-                                   }
+                                   },
+                           template = 'plotly_dark'
                            )
     return fighist
 
@@ -82,7 +70,8 @@ def update_graph(nametype, start_date, end_date):
     figln = px.line(dfm, x='date', y='count', color='nom_type',
                      labels={'date': '',
                              'count': 'nombre de mots haineux par type',
-                             }
+                             },
+                    template='plotly_dark'
                      )
     return figln
 
@@ -112,7 +101,7 @@ def update_output(start_date, end_date):
 # fonction de création de l'image du nuage de mots
 def plot_wordcloud(data):
     d = {a: x for a, x in data.values}
-    wc = WordCloud(background_color='black', width=800, height=380).generate_from_frequencies(frequencies=d)
+    wc = WordCloud(background_color='black', width=380, height=380).generate_from_frequencies(frequencies=d)
     return wc.to_image()
 
 
@@ -132,4 +121,4 @@ def make_image(b):
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True, port=3200)
+    app.run_server(debug=True, port=3700)
