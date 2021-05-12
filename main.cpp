@@ -18,7 +18,9 @@ int main(int argc, char** argv)
     {
         query.exec("select id, contenu from corpus1 where haineux is null order by id limit 10000;");
         if (query.size() == 0)
+        {
             break; // Pour plus tard : à la place se mettre en pause et attendre un signal du scraper pour recommencer
+        }
         parse_result(query, patterns, keywords);
         query.finish();
     }
@@ -84,7 +86,7 @@ QSqlDatabase open_db()
     db.setHostName("localhost");
     db.setUserName("haine_test_user");
     db.setPassword("haine_test_usermdp");
-    db.setDatabaseName("haine_test");
+    db.setDatabaseName("haine_test2");
     if (!db.open())
     {
         qDebug("Erreur : impossible d'ouvrir la base de données.");
@@ -137,6 +139,7 @@ int match(QString text, QStringList list)
     for (int i = 0; i < list.size(); i++)
     {
         regex.setPattern(list[i]);
+        regex.setCaseSensitivity(Qt::CaseInsensitive);
         if (text.contains(regex))
         {
             return i + 1;
@@ -165,9 +168,9 @@ void set_type(QString id, int type)
 
 void set_keyword(QString id, int kw_id)
 {
-    QSqlQuery update_type;
-    update_type.prepare("insert into contient values (:id, :type);");
-    update_type.bindValue(":id", id);
-    update_type.bindValue(":type", kw_id);
-    update_type.exec();
+    QSqlQuery update_kw;
+    update_kw.prepare("insert into contient values (:id, :type);");
+    update_kw.bindValue(":id", id);
+    update_kw.bindValue(":type", kw_id);
+    update_kw.exec();
 }
