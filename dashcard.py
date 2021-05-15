@@ -6,6 +6,7 @@ from datetime import datetime as dt
 from data import *
 
 
+
 card_titre =dbc.Card(
     [
         dbc.CardBody(
@@ -23,6 +24,8 @@ card_titre =dbc.Card(
                             in_navbar=True,
                             label="More",
                         ),
+                        #dbc.Button("reload_page", id="bouton",color="primary",n_clicks=0, className="mr-2"),
+
                     ],
                     brand="Dashboard detection de haine sur twitter",
                     brand_href="mydashapp.py",
@@ -34,6 +37,7 @@ card_titre =dbc.Card(
                     "Choisissez une date de début et une date de fin:",
                     className="card-text",
                 ),
+
                 html.Div([dcc.DatePickerRange(
                     id='my-date-picker-range',
                     end_date_placeholder_text="date de fin",  # text that appears when no end date chosen
@@ -43,10 +47,9 @@ card_titre =dbc.Card(
                     max_date_allowed=dt(2021, 5, 25),
                     initial_visible_month=dt(2021, 4, 1),
                 ),
-                html.Div(id='output-container-date-picker-range'),
-
-        ]),
+                html.Div(id='calender'),
                 ]),
+            ]),
 
     ],
     color="light",   # https://bootswatch.com/default/ for more card colors
@@ -66,7 +69,7 @@ card_graphique = dbc.Card(
                 dcc.Dropdown(id='menu', multi=True, value=['homophobie', 'racisme'],
                              options=[{'label': x, 'value': x}
                                       for x in sorted(df['nom_type'].unique())],placeholder="Selectionnez un type",
-                            style={"color": "#000000"}
+                             style={"color": "#000000"}
                              ),
                 dcc.Graph(id='line', figure={})
             ]
@@ -91,7 +94,7 @@ card_pie = dbc.Card(
                                       for x in sorted(df['nom_type'].unique())],
                             style={"color": "#000000"}
                              ),
-                dcc.Graph(id='pie-fig', figure={})
+                dcc.Graph(id='mypie', figure={})
             ]
         ),
     ],
@@ -114,7 +117,7 @@ card_hist = dbc.Card(
                                       for x in sorted(df['mot'].unique())],
                              style={"color": "#000000"}
                              ),
-                dcc.Graph(id='my-hist', figure={}),
+                dcc.Graph(id='myhist', figure={}),
             ]
         ),
     ],
@@ -132,14 +135,15 @@ card_img = dbc.Card([
                     className="card-text",
                 ),]
     ),
-    dbc.CardImg(id="image_wc", bottom=True,top=False, title= "Nuage de mots haineux",
+    dbc.Spinner(children= dbc.CardImg(id="wordcloud", title= "Nuage de mots haineux",
                 style=
                 {
                     'width': '100%',
                     'height': '470px',
                     'textAlign': 'center',
                 }
-                ),
+                                      ),
+               size="lg", color="primary", type="border", fullscreen=True,),
 ],
     color="light",  # https://bootswatch.com/default/ for more card colors
     inverse=True,   # change color of text (black or white)
@@ -167,6 +171,8 @@ app.layout = dbc.Container([
 
     ], no_gutters= False , justify='around'
     ),
+    dcc.Interval(id='interval_pg', interval=900000, n_intervals=0),  # activated once/week or when page refreshed
+
 ],fluid=True)
 
 

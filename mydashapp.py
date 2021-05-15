@@ -5,6 +5,8 @@ from wordcloud import WordCloud
 import base64
 from io import BytesIO
 
+import time
+
 from dashcard import *
 
 
@@ -13,13 +15,14 @@ from dashcard import *
 # ************************************************************************
 # pie chart
 @app.callback(
-    Output('pie-fig', 'figure'),
+    Output('mypie', 'figure'),
     [Input('menu1', 'value'),
      Input('my-date-picker-range', 'start_date'),
      Input('my-date-picker-range', 'end_date')
      ]
 )
 def update_graph(nametype, start_date, end_date):
+    df = read_table(table_liste)
     dff = df[df['nom_type'].isin(nametype)]
     dff = dff.sort_index().loc[start_date:end_date]
     # utilisation de plotly express pour la création de graphique
@@ -35,7 +38,7 @@ def update_graph(nametype, start_date, end_date):
 
 # Histogram
 @app.callback(
-    Output('my-hist', 'figure'),
+    Output('myhist', 'figure'),
     [Input('menu2', 'value'),
      Input('my-date-picker-range', 'start_date'),
      Input('my-date-picker-range', 'end_date')
@@ -43,8 +46,9 @@ def update_graph(nametype, start_date, end_date):
 
 )
 def update_graph(mots, start_date, end_date):
-    dff = df[df['mot'].isin(mots)]
-    dff = dff.sort_index().loc[start_date:end_date]
+    df = read_table(table_liste)
+    dff = df.sort_index().loc[start_date:end_date]
+    dff = dff[dff['mot'].isin(mots)]
     # utilisation de plotly express pour la création de graphique
     fighist = px.histogram(dff, x='mot',
                            labels={'mot': 'mot haineux '
@@ -58,13 +62,14 @@ def update_graph(mots, start_date, end_date):
     Output('line', 'figure'),
     [Input('menu', 'value'),
      Input('my-date-picker-range', 'start_date'),
-     Input('my-date-picker-range', 'end_date')
+     Input('my-date-picker-range', 'end_date'),
      ]
 
 )
 def update_graph(nametype, start_date, end_date):
-    dff = df[df['nom_type'].isin(nametype)]
-    dff = dff.sort_index().loc[start_date:end_date]
+    df = read_table(table_liste)
+    dff = df.sort_index().loc[start_date:end_date]
+    dff = dff[dff['nom_type'].isin(nametype)]
     dfm = dff.groupby(['nom_type', 'date']).size().reset_index(name='count')
     # utilisation de plotly express pour la création de graphique
     figln = px.line(dfm, x='date', y='count', color='nom_type',
@@ -76,9 +81,9 @@ def update_graph(nametype, start_date, end_date):
     return figln
 
 
-# line chart
+# calendrier
 @app.callback(
-    Output('output-container-date-picker-range', 'children'),
+    Output('calender', 'children'),
     [Input('my-date-picker-range', 'start_date'),
      Input('my-date-picker-range', 'end_date')])
 def update_output(start_date, end_date):
@@ -107,18 +112,28 @@ def plot_wordcloud(data):
 
 # callback liant le div à l'image du wordcloud
 @app.callback(
-    Output('image_wc', 'src'),
-    Input('image_wc', 'id'))
-def make_image(b):
+    Output('wordcloud', 'src'),
+    [Input('wordcloud', 'id'),
+     Input('my-date-picker-range', 'start_date'),
+     Input('my-date-picker-range', 'end_date'),
+     Input('interval_pg', 'n_intervals')
+     ])
+
+def make_image(b,start_date, end_date,n):
+    df = pd.read_csv("donnees.csv")
+    #dfm = df.sort_index().loc[start_date:end_date]
     dfm = df.groupby('mot').size().reset_index(name='count')
     dfm = dfm[['mot', 'count']]
     img = BytesIO()
     plot_wordcloud(data=dfm).save(img, format='PNG')
     return 'data:image/png;base64,{}'.format(base64.b64encode(img.getvalue()).decode())
 
-
-
+"""@app.callback(Output('bouton', 'children'),
+              [Input('interval_pg', 'n_intervals')])
+def populate_datatable(n_intervals):
+    #df = read_table(table_liste)
+    df = pd.read_csv("donnees.csv")"""
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True, port=3700)
+    app.run_server(debug=True, port=8050)
