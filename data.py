@@ -23,7 +23,7 @@ def read_table(liste):
     df.set_index('date', drop= False, inplace=True)
     return df
 
-df = read_table(table_liste)
+#df = read_table(table_liste)
 
 # fonction de création de l'image du nuage de mots
 def plot_wordcloud(data):

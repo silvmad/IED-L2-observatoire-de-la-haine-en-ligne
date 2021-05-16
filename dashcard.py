@@ -67,8 +67,7 @@ card_graphique = dbc.Card(
                     className="card-text",
                 ),
                 dcc.Dropdown(id='menu', multi=True, value=['homophobie', 'racisme'],
-                             options=[{'label': x, 'value': x}
-                                      for x in sorted(df['nom_type'].unique())],placeholder="Selectionnez un type",
+                             options=[],placeholder="Selectionnez un type",
                              style={"color": "#000000"}
                              ),
                 dcc.Graph(id='line', figure={})
@@ -90,8 +89,7 @@ card_pie = dbc.Card(
                     className="text-center",
                 ),
                 dcc.Dropdown(id='menu1', multi=True, value=['homophobie', 'racisme'],
-                             options=[{'label': x, 'value': x}
-                                      for x in sorted(df['nom_type'].unique())],
+                             options=[],
                             style={"color": "#000000"}
                              ),
                 dcc.Graph(id='mypie', figure={})
@@ -113,8 +111,7 @@ card_hist = dbc.Card(
                     className="text-center",
                 ),
                 dcc.Dropdown(id='menu2', multi=True, value=['bougnoule', 'pd'],
-                             options=[{'label': x, 'value': x}
-                                      for x in sorted(df['mot'].unique())],
+                             options=[],
                              style={"color": "#000000"}
                              ),
                 dcc.Graph(id='myhist', figure={}),
