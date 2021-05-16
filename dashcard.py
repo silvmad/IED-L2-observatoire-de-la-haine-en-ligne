@@ -172,6 +172,8 @@ app.layout = dbc.Container([
     ], no_gutters= False , justify='around'
     ),
     dcc.Interval(id='interval_pg', interval=900000, n_intervals=0),  # activated once/week or when page refreshed
+    # dcc.Store inside the app that stores the intermediate value
+    dcc.Store(id='stockmemo')
 
 ],fluid=True)
 

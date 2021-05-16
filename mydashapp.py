@@ -4,7 +4,6 @@ from dash.dependencies import Output, Input
 from wordcloud import WordCloud
 import base64
 from io import BytesIO
-
 import time
 
 from dashcard import *
@@ -13,18 +12,38 @@ from dashcard import *
 # Callback section: connecting the components
 # connecter les composantes html (menu , calendrier) aux graphiques
 # ************************************************************************
+#calculer, stocker et updater les données à un interval régulier
+@app.callback(Output('stockmemo', 'data'),
+              [
+                  Input('my-date-picker-range', 'start_date'),
+                  Input('my-date-picker-range', 'end_date'),
+              ])
+def update_data(start_date,end_date):
+    #dff = pd.read_csv("donnees.csv")
+    dff = read_table(table_liste)
+    if ((not start_date) and (not end_date))  :
+        # Return all the rows on initial load/no country selected.
+        return dff.to_dict('records')
+    dff = dff.sort_index().loc[start_date:end_date]
+    return dff.to_dict('records')
+
+#partager les données et les lier à chaque graphique
+#ce qui amènera à updater chaque graphique à chaque update des données de données
 # pie chart
 @app.callback(
     Output('mypie', 'figure'),
-    [Input('menu1', 'value'),
-     Input('my-date-picker-range', 'start_date'),
-     Input('my-date-picker-range', 'end_date')
+    [
+        Input('stockmemo', 'data'),
+        Input('menu1', 'value'),
      ]
 )
-def update_graph(nametype, start_date, end_date):
-    df = read_table(table_liste)
-    dff = df[df['nom_type'].isin(nametype)]
-    dff = dff.sort_index().loc[start_date:end_date]
+def update_graph(data,nametype):
+    if data is None:
+        raise PreventUpdate
+    #récupérer les données
+    dff = pd.DataFrame.from_dict(data)
+    #les filtrer par rapport au menu déroulant
+    dff = dff[dff['nom_type'].isin(nametype)]
     # utilisation de plotly express pour la création de graphique
     pifig = px.pie(dff, names='nom_type', hole=.5,
                     labels={'nom_type': 'type de haine ',
@@ -36,18 +55,23 @@ def update_graph(nametype, start_date, end_date):
     return pifig
 
 
+
+
 # Histogram
 @app.callback(
     Output('myhist', 'figure'),
-    [Input('menu2', 'value'),
-     Input('my-date-picker-range', 'start_date'),
-     Input('my-date-picker-range', 'end_date')
+    [
+        Input('stockmemo', 'data'),
+        Input('menu2', 'value'),
      ]
 
 )
-def update_graph(mots, start_date, end_date):
-    df = read_table(table_liste)
-    dff = df.sort_index().loc[start_date:end_date]
+def update_graph(data,mots):
+    if data is None:
+        raise PreventUpdate
+    #récupérer la data
+    dff = pd.DataFrame.from_dict(data)
+    #filtrer par rapport au choix e l'utilisateur
     dff = dff[dff['mot'].isin(mots)]
     # utilisation de plotly express pour la création de graphique
     fighist = px.histogram(dff, x='mot',
@@ -60,15 +84,14 @@ def update_graph(mots, start_date, end_date):
 # line chart
 @app.callback(
     Output('line', 'figure'),
-    [Input('menu', 'value'),
-     Input('my-date-picker-range', 'start_date'),
-     Input('my-date-picker-range', 'end_date'),
+    [
+        Input('stockmemo', 'data'),
+        Input('menu', 'value'),
      ]
 
 )
-def update_graph(nametype, start_date, end_date):
-    df = read_table(table_liste)
-    dff = df.sort_index().loc[start_date:end_date]
+def update_graph(data,nametype):
+    dff = pd.DataFrame.from_dict(data)
     dff = dff[dff['nom_type'].isin(nametype)]
     dfm = dff.groupby(['nom_type', 'date']).size().reset_index(name='count')
     # utilisation de plotly express pour la création de graphique
@@ -113,26 +136,18 @@ def plot_wordcloud(data):
 # callback liant le div à l'image du wordcloud
 @app.callback(
     Output('wordcloud', 'src'),
-    [Input('wordcloud', 'id'),
-     Input('my-date-picker-range', 'start_date'),
-     Input('my-date-picker-range', 'end_date'),
-     Input('interval_pg', 'n_intervals')
+    [
+        Input('wordcloud', 'id'),
+        Input('stockmemo', 'data'),
      ])
 
-def make_image(b,start_date, end_date,n):
-    df = pd.read_csv("donnees.csv")
-    #dfm = df.sort_index().loc[start_date:end_date]
-    dfm = df.groupby('mot').size().reset_index(name='count')
+def make_image(b,data):
+    dff = pd.DataFrame.from_dict(data)
+    dfm = dff.groupby('mot').size().reset_index(name='count')
     dfm = dfm[['mot', 'count']]
     img = BytesIO()
     plot_wordcloud(data=dfm).save(img, format='PNG')
     return 'data:image/png;base64,{}'.format(base64.b64encode(img.getvalue()).decode())
-
-"""@app.callback(Output('bouton', 'children'),
-              [Input('interval_pg', 'n_intervals')])
-def populate_datatable(n_intervals):
-    #df = read_table(table_liste)
-    df = pd.read_csv("donnees.csv")"""
 
 
 if __name__ == '__main__':

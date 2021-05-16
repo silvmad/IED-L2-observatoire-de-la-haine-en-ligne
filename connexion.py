@@ -5,6 +5,8 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 
 
+
+
 # utilisation du serveur flask pour la bdd
 server = Flask(__name__)
 
@@ -42,3 +44,6 @@ except:
     print("\tError during databse connexion")
 
 db = SQLAlchemy(app.server)
+
+
+

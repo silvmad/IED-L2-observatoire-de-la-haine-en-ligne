@@ -2,3 +2,4 @@
 *.pro.user
 __pycache__/
 venv/
+cache-directory/
