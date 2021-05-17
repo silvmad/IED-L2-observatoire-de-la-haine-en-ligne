@@ -1,20 +1,48 @@
-import plotly.express as px
 from dash.dependencies import Output, Input
 from dash.exceptions import PreventUpdate
-
 from wordcloud import WordCloud
+import plotly.express as px
+
+
 import base64
 from io import BytesIO
 
+from .dashcard import *
+from projet.data import *
 
-from dashcard import *
+
+# Layout section: Bootstrap (https://hackerthemes.com/bootstrap-cheatsheet/)
+# utilisation de bootstrap
+# ************************************************************************
+layout = dbc.Container([
+
+    dbc.Row([
+        dbc.Col([card_titre], xs=12, sm=12, md=12, lg=12, xl=12),
+    ]),
+    dbc.Row([
+        dbc.Col([card_graphique], xs=12, sm=12, md=12, lg=12, xl=12),
+
+    ]),
+    dbc.Row([
+        dbc.Col([card_pie], xs=12, sm=12, md=12, lg=4, xl=4),
+        dbc.Col([card_img], xs=12, sm=12, md=12, lg=12, xl=4),
+        dbc.Col([card_hist], xs=12, sm=12, md=12, lg=4, xl=4),
+
+    ], no_gutters=False, justify='around'
+    ),
+    dcc.Interval(id='interval_pg', interval=900000, n_intervals=0),  # activated once/week or when page refreshed
+    # dcc.Store inside the app that stores the intermediate value
+    dcc.Store(id='stockmemo'),
+    # represents the URL bar, doesn't render anything
+
+], fluid=True)
 
 
 # Callback section: connecting the components
 # connecter les composantes html (menu , calendrier) aux graphiques
 # ************************************************************************
 # calculer, stocker et updater les données à un interval régulier
-@app.callback(Output('stockmemo', 'data'),
+@app.callback(Output('stockmemo', 'mydata'),
               [
                   Input('my-date-picker-range', 'start_date'),
                   Input('my-date-picker-range', 'end_date'),
@@ -25,8 +53,11 @@ def update_data(start_date, end_date):
     if (not start_date) and (not end_date):
         # Return all the rows on initial load/no country selected.
         return dff.to_dict('records')
-    dff = dff.sort_index().loc[start_date:end_date]
-    return dff.to_dict('records')
+    dfm = dff.sort_index().loc[start_date:end_date]
+    if dfm.empty:
+        return dff.to_dict('records')
+    return dfm.to_dict('records')
+
 
 # partager les données et les lier à chaque graphique
 # ce qui amènera à updater chaque graphique à chaque update des données de données
@@ -38,13 +69,15 @@ def update_data(start_date, end_date):
         Output('menu1', 'options'),
         Output('menu2', 'options'),
 
-     ],
-    Input('stockmemo', 'data'),
+    ],
+    Input('stockmemo', 'mydata'),
 )
 def update_date_dropdown(data):
+    if data is None:
+        raise PreventUpdate
     dff = pd.DataFrame.from_dict(data)
-    option1 = [{'label': x, 'value': x} for x in sorted(dff['type'].unique())]
-    option2 = [{'label': x, 'value': x} for x in sorted(dff['type'].unique())]
+    option1 = [{'label': x, 'value': x} for x in sorted(dff['nom_type'].unique())]
+    option2 = [{'label': x, 'value': x} for x in sorted(dff['nom_type'].unique())]
     option3 = [{'label': x, 'value': x} for x in sorted(dff['mot'].unique())]
     return option1, option2, option3
 
@@ -53,9 +86,9 @@ def update_date_dropdown(data):
 @app.callback(
     Output('mypie', 'figure'),
     [
-        Input('stockmemo', 'data'),
+        Input('stockmemo', 'mydata'),
         Input('menu1', 'value'),
-     ]
+    ]
 )
 def update_graph(data, nametype):
     if data is None:
@@ -63,9 +96,9 @@ def update_graph(data, nametype):
     # récupérer les données
     dff = pd.DataFrame.from_dict(data)
     # les filtrer par rapport au menu déroulant
-    dff = dff[dff['type'].isin(nametype)]
+    dff = dff[dff['nom_type'].isin(nametype)]
     # utilisation de plotly express pour la création de graphique
-    pifig = px.pie(dff, names='type', hole=.5, labels={'type': 'type de haine '},
+    pifig = px.pie(dff, names='nom_type', hole=.5, labels={'nom_type': 'type de haine '},
                    template='plotly_dark'
                    )
     return pifig
@@ -75,15 +108,15 @@ def update_graph(data, nametype):
 @app.callback(
     Output('myhist', 'figure'),
     [
-        Input('stockmemo', 'data'),
+        Input('stockmemo', 'mydata'),
         Input('menu2', 'value'),
-     ]
+    ]
 
 )
 def update_graph(data, mots):
     if data is None:
         raise PreventUpdate
-    # récupérer la data
+    # récupérer la mydata
     dff = pd.DataFrame.from_dict(data)
     # filtrer par rapport au choix e l'utilisateur
     dff = dff[dff['mot'].isin(mots)]
@@ -100,9 +133,9 @@ def update_graph(data, mots):
 @app.callback(
     Output('line', 'figure'),
     [
-        Input('stockmemo', 'data'),
+        Input('stockmemo', 'mydata'),
         Input('menu', 'value'),
-     ]
+    ]
 
 )
 def update_graph(data, nametype):
@@ -152,8 +185,8 @@ def plot_wordcloud(data):
     Output('wordcloud', 'src'),
     [
         Input('wordcloud', 'id'),
-        Input('stockmemo', 'data'),
-     ])
+        Input('stockmemo', 'mydata'),
+    ])
 def make_image(b, data):
     dff = pd.DataFrame.from_dict(data)
     dfm = dff.groupby('mot').size().reset_index(name='count')
@@ -161,7 +194,3 @@ def make_image(b, data):
     img = BytesIO()
     plot_wordcloud(data=dfm).save(img, format='PNG')
     return 'data:image/png;base64,{}'.format(base64.b64encode(img.getvalue()).decode())
-
-
-if __name__ == '__main__':
-    app.run_server(debug=True, port=8050)

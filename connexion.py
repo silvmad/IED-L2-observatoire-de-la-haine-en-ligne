@@ -17,6 +17,7 @@ app = dash.Dash(__name__, external_stylesheets=[dbc.themes.CYBORG],
 # app = dash.Dash(__name__, server=server, suppress_callback_exceptions=True)
 
 app.server.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config.suppress_callback_exceptions = True
 
 
 # fonction de chargement depuis le fichier config

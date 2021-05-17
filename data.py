@@ -1,5 +1,5 @@
-import pandas as pd
 from connexion import *
+import pandas as pd
 
 
 
@@ -23,13 +23,8 @@ def read_table(liste):
     df.set_index('date', drop= False, inplace=True)
     return df
 
-#df = read_table(table_liste)
 
-# fonction de création de l'image du nuage de mots
-def plot_wordcloud(data):
-    d = {a: x for a, x in data.values}
-    wc = WordCloud(background_color='black', width=380, height=380).generate_from_frequencies(frequencies=d)
-    return wc.to_image()
+
 
 
 

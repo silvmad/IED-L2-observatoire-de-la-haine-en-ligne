@@ -1,9 +1,9 @@
 import dash_core_components as dcc
 import dash_html_components as html
+import dash_bootstrap_components as dbc
 
 from datetime import datetime as dt
 
-from data import *
 
 
 
@@ -11,28 +11,6 @@ card_titre =dbc.Card(
     [
         dbc.CardBody(
             [
-                dbc.NavbarSimple(
-                    children=[
-                        dbc.NavItem(dbc.NavLink("À propos", href="https://plot.ly")),
-
-                        dbc.DropdownMenu(
-                            children=[
-                                dbc.DropdownMenuItem("code source", href="https://github.com/silvmad/IED-L2-observatoire-de-la-haine-en-ligne"),
-                                dbc.DropdownMenuItem("nous contacter", href="#"),
-                            ],
-                            nav=True,
-                            in_navbar=True,
-                            label="More",
-                        ),
-                        #dbc.Button("reload_page", id="bouton",color="primary",n_clicks=0, className="mr-2"),
-
-                    ],
-                    brand="Dashboard detection de haine sur twitter",
-                    brand_href="mydashapp.py",
-                    brand_style={"font-size":"300%", "color": "red"},
-                    color="dark",
-                    dark=True,
-                ),
                 html.H5(
                     "Choisissez une date de début et une date de fin:",
                     className="card-text",
@@ -47,7 +25,7 @@ card_titre =dbc.Card(
                     max_date_allowed=dt(2021, 5, 25),
                     initial_visible_month=dt(2021, 4, 1),
                 ),
-                html.Div(id='calender'),
+                    html.Div(id='calender'),
                 ]),
             ]),
 
@@ -147,32 +125,8 @@ card_img = dbc.Card([
     outline=False,  # True = remove the block colors from the background and header
 )
 
-# Layout section: Bootstrap (https://hackerthemes.com/bootstrap-cheatsheet/)
-# utilisation de bootstrap
-# ************************************************************************
-
-app.layout = dbc.Container([
-
-    dbc.Row([
-        dbc.Col([card_titre], xs=12, sm=12, md=12, lg=12, xl=12),
-    ]),
-    dbc.Row([
-        dbc.Col([card_graphique], xs=12, sm=12, md=12, lg=12, xl=12),
-
-         ]),
-    dbc.Row([
-        dbc.Col([card_pie], xs=12, sm=12, md=12, lg=4, xl=4),
-        dbc.Col([card_img], xs=12, sm=12, md=12, lg=12, xl=4),
-        dbc.Col([card_hist], xs=12, sm=12, md=12, lg=4, xl=4),
 
 
-    ], no_gutters= False , justify='around'
-    ),
-    dcc.Interval(id='interval_pg', interval=900000, n_intervals=0),  # activated once/week or when page refreshed
-    # dcc.Store inside the app that stores the intermediate value
-    dcc.Store(id='stockmemo')
-
-],fluid=True)
 
 
 
