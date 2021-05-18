@@ -2,6 +2,7 @@
 
 ScraperConfWindow::ScraperConfWindow(QWidget *parent) : QDialog(parent)
 {
+    setWindowTitle("Configuration du scraper");
     setModal(true);
 
     conf = ConfArray(CONF_FILENAME);
@@ -37,10 +38,10 @@ ScraperConfWindow::ScraperConfWindow(QWidget *parent) : QDialog(parent)
     search_opt_lay->addRow("Intervalle(s) :", sopt_itv);
 
     but_lay = new QHBoxLayout;
-    save_but = new QPushButton("Enregistrer");
-    close_but = new QPushButton("Fermer");
-    but_lay->addWidget(save_but);
+    save_but = new QPushButton("Valider");
+    close_but = new QPushButton("Annuler");
     but_lay->addWidget(close_but);
+    but_lay->addWidget(save_but);
     but_lay->setAlignment(Qt::AlignRight);
 
     main_layout->addWidget(twit_api_lab);
@@ -67,4 +68,5 @@ void ScraperConfWindow::save_values()
     conf.setValue(SC_LANG, sopt_lang->currentData().toString());
     conf.setValue(SC_ITV, QString::number(sopt_itv->value()));
     conf.write(CONF_FILENAME);
+    this->close();
 }

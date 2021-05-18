@@ -3,6 +3,8 @@
 #include <QTranslator>
 #include <QLocale>
 #include <QLibraryInfo>
+#include <QStyle>
+#include <QScreen>
 
 int main(int argc, char *argv[])
 {
@@ -14,6 +16,7 @@ int main(int argc, char *argv[])
     a.installTranslator(&translator);
 
     MainWindow w;
+    w.setGeometry(QStyle::alignedRect(Qt::LeftToRight, Qt::AlignCenter, w.size(), a.primaryScreen()->geometry()));
     w.show();
 
     return a.exec();

@@ -25,7 +25,7 @@ public slots:
     void add_kw();
     void suppr_kw();
     void save_kws();
-    void close_clicked();
+    void reject();
     void list_model_data_changed();
 
 private:

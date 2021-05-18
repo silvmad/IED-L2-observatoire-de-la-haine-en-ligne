@@ -9,9 +9,19 @@
 
 AnalyserConfWindow::AnalyserConfWindow()
 {
-    //conf = ConfArray(CONF_FILENAME);
+    setWindowTitle("Configuration de l'analyseur");
     load_types();
-    patterns_model.setColumnCount(2);
+
+    patterns_model = new QStandardItemModel;
+    patterns_model->setColumnCount(2);
+    patterns_model->setHeaderData(0, Qt::Horizontal, "Patron");
+    patterns_model->setHeaderData(1, Qt::Horizontal, "Type");
+    load_patterns(PATTERNS_FILENAME);
+    results_model = new QStandardItemModel;
+    results_model->setColumnCount(2);
+    results_model->setHeaderData(0, Qt::Horizontal, "Message");
+    results_model->setHeaderData(1, Qt::Horizontal, "Type");
+    new_sample();
 
     tabs = new QTabWidget;
     gen_layout = new QVBoxLayout(this);
@@ -27,15 +37,12 @@ AnalyserConfWindow::AnalyserConfWindow()
 
     init_ptab();
     init_rtab();
-    load_patterns(PATTERNS_FILENAME);
-    load_results();
-    analyze_results();
 
     tabs->addTab(patterns_tab, "Patrons");
     tabs->addTab(results_tab, "Résultats");
     gen_layout->addWidget(tabs);
     gen_layout->addLayout(but_layout);
-    this->setGeometry(500,500,500,500);
+    this->resize(500, 500);
     this->setModal(true);
     // Par précaution pour éviter les fuites de mémoire.
     this->setAttribute(Qt::WA_DeleteOnClose);
@@ -46,32 +53,16 @@ AnalyserConfWindow::AnalyserConfWindow()
     QObject::connect(pt_select_type, SIGNAL(currentTextChanged(QString)), this, SLOT(show_patterns_by_type(QString)));
     QObject::connect(rt_new_sample_but, SIGNAL(clicked()), this, SLOT(new_sample()));
     QObject::connect(rt_redo_analyze_but, SIGNAL(clicked()), this, SLOT(analyze_results()));
-}
-
-pattern::pattern()
-{
-
-}
-
-pattern::pattern(int row)
-{
-    this->row = row;
-    this->type_idx = -1;
+    QObject::connect(pt_suppr_pattern_button, SIGNAL(clicked()), this, SLOT(suppr_pattern()));
+    QObject::connect(pt_modify_pattern_button, SIGNAL(clicked()), this, SLOT(open_mod_pattern_win()));
+    QObject::connect(results_view->horizontalHeader(),SIGNAL(sectionResized(int, int, int)),
+        results_view, SLOT(resizeRowsToContents()));
 }
 
 void AnalyserConfWindow::load_types()
 {
     QSqlDatabase db = QSqlDatabase::database();
-    //QString hnm, unm, upw, dbn;
     QSqlQuery query;
-    /*hnm = conf.getValue(DB_HOST);
-    unm = conf.getValue(DB_USERNAME);
-    upw = conf.getValue(DB_USER_PW);
-    dbn = conf.getValue(DB_DBNAME);
-    db.setHostName(hnm);
-    db.setUserName(unm);
-    db.setPassword(upw);
-    db.setDatabaseName(dbn);*/
     if (!db.open())
     {
         return;
@@ -96,20 +87,26 @@ void AnalyserConfWindow::init_ptab()
     pt_top_layout->addWidget(pt_select_type);
     pt_top_layout->setAlignment(Qt::AlignLeft);
 
-    pt_mid_scroll = new QScrollArea;
-    pt_mid_widget = new QWidget;
-    pt_mid_layout = new QGridLayout;
-    pt_mid_layout->setSizeConstraint(QLayout::SetMinimumSize);
-    pt_mid_widget->setLayout(pt_mid_layout);
-    pt_mid_scroll->setWidget(pt_mid_widget);
+    patterns_view = new QTableView;
+    patterns_view->verticalHeader()->hide();
+    patterns_view->setModel(patterns_model);
+    patterns_view->resizeColumnToContents(0);
+    patterns_view->setEditTriggers(QTableView::NoEditTriggers);
+    patterns_view->setSelectionBehavior(QAbstractItemView::SelectRows);
+    patterns_view->setSelectionMode(QAbstractItemView::SingleSelection);
 
     pt_bot_layout = new QHBoxLayout;
     pt_add_pattern_button = new QPushButton("Ajouter patron", this);
+    pt_modify_pattern_button = new QPushButton("Modifier", this);
+    pt_suppr_pattern_button = new QPushButton("Supprimer", this);
+
     pt_bot_layout->addWidget(pt_add_pattern_button);
+    pt_bot_layout->addWidget(pt_modify_pattern_button);
+    pt_bot_layout->addWidget(pt_suppr_pattern_button);
     pt_bot_layout->setAlignment(Qt::AlignLeft);
 
     pt_layout->addLayout(pt_top_layout);
-    pt_layout->addWidget(pt_mid_scroll);
+    pt_layout->addWidget(patterns_view);
     pt_layout->addLayout(pt_bot_layout);
 
     patterns_tab->setLayout(pt_layout);
@@ -119,19 +116,13 @@ void AnalyserConfWindow::init_rtab()
 {
     rt_layout = new QVBoxLayout;
 
-    rt_scroll = new QScrollArea;
-    rt_scroll_lay = new QVBoxLayout;
-    rt_scroll_widget = new QWidget;
-    QLabel *lab;
-    for (int i = 0; i < 100; i++)
-    {
-        lab = new QLabel;
-        lab->setMaximumWidth(400);
-        lab->setWordWrap(true);
-        rt_scroll_lay->addWidget(lab);
-    }
-    rt_scroll_widget->setLayout(rt_scroll_lay);
-    rt_scroll->setWidget(rt_scroll_widget);
+    results_view = new QTableView;
+    results_view->verticalHeader()->hide();
+    results_view->setModel(results_model);
+    results_view->setEditTriggers(QTableView::NoEditTriggers);
+    results_view->setSelectionMode(QAbstractItemView::NoSelection);
+    results_view->horizontalHeader()->resizeSection(0, 340);
+    results_view->resizeRowsToContents();
 
     rt_but_lay = new QHBoxLayout;
     rt_redo_analyze_but = new QPushButton("Refaire l'analyse");
@@ -139,7 +130,7 @@ void AnalyserConfWindow::init_rtab()
     rt_but_lay->addWidget(rt_redo_analyze_but);
     rt_but_lay->addWidget(rt_new_sample_but);
 
-    rt_layout->addWidget(rt_scroll);
+    rt_layout->addWidget(results_view);
     rt_layout->addLayout(rt_but_lay);
 
     results_tab->setLayout(rt_layout);
@@ -154,16 +145,21 @@ void AnalyserConfWindow::load_patterns(QString filename)
         return;
     }
     QTextStream stream(&file);
-    QString line;
+    QString line, type;
     QStringList list;
+    int rc, id, idx;
     while (!stream.atEnd())
     {
         line = stream.readLine();
         list = line.split('\t');
-        add_pattern(list[0]);
-        pattern *pt = &patterns_list[grid_row_count - 1];
-        pt->regex = list[0];
-        pt->type_idx = type_id_list.indexOf(list[1].toInt());
+
+        rc = patterns_model->rowCount();
+        patterns_model->insertRow(rc);
+        patterns_model->setItem(rc, 0, new QStandardItem(list[0]));
+        id = list[1].toInt();
+        idx = type_id_list.indexOf(id);
+        type = type_name_list[idx];
+        patterns_model->setItem(rc, 1, new QStandardItem(type));
     }
     patterns_modified = false;
 }
@@ -171,18 +167,8 @@ void AnalyserConfWindow::load_patterns(QString filename)
 void AnalyserConfWindow::load_results()
 {
     QSqlDatabase db = QSqlDatabase::database();
-    //QString hnm, unm, upw, dbn;
     QSqlQuery query;
-    QLabel *lab;
     int i = 0;
-    /*hnm = conf.getValue(DB_HOST);
-    unm = conf.getValue(DB_USERNAME);
-    upw = conf.getValue(DB_USER_PW);
-    dbn = conf.getValue(DB_DBNAME);
-    db.setHostName(hnm);
-    db.setUserName(unm);
-    db.setPassword(upw);
-    db.setDatabaseName(dbn);*/
     if (!db.open())
     {
         return;
@@ -190,36 +176,53 @@ void AnalyserConfWindow::load_results()
     query.exec("select contenu from corpus1 where haineux is not null order by random() limit 100;");
     while(query.next())
     {
-        lab = qobject_cast<QLabel*>(rt_scroll_lay->itemAt(i++)->widget());
-        lab->setText(query.value(0).toString());
+        results_model->insertRow(i);
+        results_model->setItem(i, 0, new QStandardItem(query.value(0).toString()));
+        results_model->setItem(i++, 1, new QStandardItem(""));
+
     }
-    rt_scroll_widget->adjustSize();
     db.close();
 }
 
 void AnalyserConfWindow::analyze_results()
 {
-    QString text;
-    QLabel *lab;
+    QString message, pt_regex, type_string;
     QRegExp regex;
-    bool hateful = false;
+    QSet<QString> set;
+    bool hateful;
     for (int i = 0; i < 100; i++)
     {
-        lab = qobject_cast<QLabel*>(rt_scroll_lay->itemAt(i)->widget());
-        text = lab->text();
-        for (int j = 0; j < patterns_list.size(); j++)
+        hateful = false;
+        set.clear();
+        message = results_model->item(i, 0)->text();
+        for (int j = 0; j < patterns_model->rowCount(); j++)
         {
-            regex.setPattern(patterns_list[j].regex);
-            if (text.contains(regex))
+            pt_regex = patterns_model->item(j, 0)->text();
+            regex.setPattern(pt_regex);
+            if (message.contains(regex))
             {
-                lab->setStyleSheet("QLabel { background-color : red;}");
+                set << patterns_model->item(j, 1)->text();
+                results_model->item(i)->setBackground(QColor(Qt::red));
                 hateful = true;
             }
         }
         if (!hateful)
         {
-            lab->setStyleSheet("");
+            results_model->item(i)->setBackground(QBrush());
+            results_model->item(i, 1)->setText("");
         }
+        else
+        {
+            type_string.clear();
+            QSetIterator<QString> it(set);
+            while(it.hasNext())
+            {
+                type_string.append(it.next() + ", ");
+            }
+            type_string.chop(2);
+            results_model->setItem(i, 1, new QStandardItem(type_string));
+        }
+
     }
 }
 
@@ -231,102 +234,46 @@ void AnalyserConfWindow::new_sample()
 
 void AnalyserConfWindow::add_pattern()
 {
-    this->patterns_modified = true;
-    QLabel *line = new QLabel("Label numéro " + QString::number(grid_row_count));
-    line->setFrameStyle(QFrame::Box);
-    QPushButton *mod = new QPushButton("Modifier");
-    QPushButton *suppr = new QPushButton("Supprimer");
-    this->pt_mid_layout->addWidget(line, this->grid_row_count, 0);
-    this->pt_mid_layout->addWidget(mod, this->grid_row_count, 1);
-    this->pt_mid_layout->addWidget(suppr, this->grid_row_count, 2);
-    patterns_list << *(new pattern(grid_row_count++));
-
-    QObject::connect(suppr, SIGNAL(clicked()), this, SLOT(suppr_pattern()));
-    QObject::connect(mod, SIGNAL(clicked()), this, SLOT(open_mod_pattern_win()));
-}
-
-void AnalyserConfWindow::add_pattern(QString regex)
-{
-    add_pattern();
-    QLabel *lab = qobject_cast<QLabel*>(pt_mid_layout->itemAtPosition(grid_row_count - 1, 0)->widget());
-    lab->setText(regex);
+    patterns_modified = true;
+    QList<QStandardItem*> list;
+    list << new QStandardItem("Nouveau patron") << new QStandardItem("");
+    patterns_model->appendRow(list);
 }
 
 void AnalyserConfWindow::suppr_pattern()
 {
+    QItemSelectionModel *select = patterns_view->selectionModel();
+    if (!select->hasSelection())
+    {
+        return;
+    }
     this->patterns_modified = true;
     int rep = QMessageBox::question(this, "Suppression", "Êtes-vous sûr de vouloir supprimer ce patron ?", QMessageBox::Yes | QMessageBox::No);
     if (rep == QMessageBox::No)
     {
         return;
     }
-    QPushButton* pButton = qobject_cast<QPushButton*>(sender());
-    if (pButton)
-    {
-        QGridLayout *layout = qobject_cast<QGridLayout*>(pButton->parentWidget()->layout());
-        QWidget *widget;
-        int idx, *row = new int, *pad = new int;
-        idx = layout->indexOf(pButton);
-        // Seule la ligne nous intéresse.
-        layout->getItemPosition(idx, row, pad, pad, pad);
-
-        widget = layout->itemAtPosition(*row, 0)->widget();
-        widget->setParent(nullptr);
-        delete widget;
-        widget = layout->itemAtPosition(*row, 1)->widget();
-        widget->setParent(nullptr);
-        delete widget;
-        widget = layout->itemAtPosition(*row, 2)->widget();
-        widget->setParent(nullptr);
-        delete widget;
-        layout->update();
-        this->pt_mid_widget->adjustSize();
-
-        suppr_pattern_from_list(*row);
-    }
-}
-
-void AnalyserConfWindow::suppr_pattern_from_list(int row)
-{
-    for (int i = 0; i < patterns_list.size(); i++)
-    {
-        if (patterns_list[i].row == row)
-        {
-            patterns_list.removeAt(i);
-            return;
-        }
-    }
+    QModelIndex idx = select->currentIndex();
+    patterns_model->removeRow(idx.row());
 }
 
 void AnalyserConfWindow::open_mod_pattern_win()
 {
-    PatternWindow *w = nullptr;
-    QPushButton* but = qobject_cast<QPushButton*>(sender());
-    QGridLayout *lay = qobject_cast<QGridLayout*>(but->parentWidget()->layout());
-    int idx = lay->indexOf(but);
-    int *row = new int, *pad = new int;
-    lay->getItemPosition(idx, row, pad, pad, pad);
-    for (int i = 0; i < patterns_list.size(); i++)
+    QItemSelectionModel *select = patterns_view->selectionModel();
+    if (!select->hasSelection())
     {
-        if (*row == patterns_list[i].row)
-        {
-            w = new PatternWindow(this, i);
-            break;
-        }
+        return;
     }
+    QModelIndex idx = select->currentIndex();
+    PatternWindow *w = new PatternWindow(this, idx.row());
     w->show();
 }
 
-void AnalyserConfWindow::modify_pattern(int pt_idx, QString regex, QString type)
+void AnalyserConfWindow::modify_pattern(int row, QString regex, QString type)
 {
-    QLabel *lab;
-    //QPushButton *but;
-    int row = patterns_list[pt_idx].row;
-    patterns_list[pt_idx].regex = regex;
-    patterns_list[pt_idx].type_idx = type_name_list.indexOf(type);
-    lab = qobject_cast<QLabel*>(pt_mid_layout->itemAtPosition(row, 0)->widget());
-    lab->setText(regex);
-    //but = qobject_cast<QPushButton*>(pt_mid_layout->itemAtPosition(row, 1))
+    patterns_modified = true;
+    patterns_model->setItem(row, 0, new QStandardItem(regex));
+    patterns_model->setItem(row, 1, new QStandardItem(type));
 }
 
 void AnalyserConfWindow::save_patterns()
@@ -338,11 +285,12 @@ void AnalyserConfWindow::save_patterns()
         return;
     }
     QTextStream stream(&file);
-    pattern pt;
-    for (int i = 0; i < patterns_list.size(); i++)
+
+    for (int i = 0; i < patterns_model->rowCount(); i++)
     {
-        pt = patterns_list[i];
-        stream << pt.regex << "\t" << type_id_list[pt.type_idx] << endl;
+        int idx = type_name_list.indexOf(patterns_model->item(i, 1)->text());
+        stream << patterns_model->item(i, 0)->text() << "\t"
+               << type_id_list[idx] << endl;
     }
     file.close();
     patterns_modified = false;
@@ -350,38 +298,20 @@ void AnalyserConfWindow::save_patterns()
 
 void AnalyserConfWindow::show_patterns_by_type(QString type)
 {
-    pattern pt;
-    int type_idx, row;
-    if (type == "Tous les types")
+    for (int i = 0; i < patterns_model->rowCount(); i++)
     {
-        type_idx = -1;
-    }
-    else
-    {
-        type_idx = type_name_list.indexOf(type);
-        //type_id = type_id_list[idx];
-    }
-    for (int i = 0 ; i < patterns_list.size(); i++)
-    {
-        pt = patterns_list[i];
-        row = pt.row;
-        if (type_idx == -1 || pt.type_idx == type_idx)
+        if (type == "Tous les types" || patterns_model->item(i, 1)->text() == type)
         {
-            pt_mid_layout->itemAtPosition(row, 0)->widget()->show();
-            pt_mid_layout->itemAtPosition(row, 1)->widget()->show();
-            pt_mid_layout->itemAtPosition(row, 2)->widget()->show();
+            patterns_view->showRow(i);
         }
         else
         {
-            pt_mid_layout->itemAtPosition(row, 0)->widget()->hide();
-            pt_mid_layout->itemAtPosition(row, 1)->widget()->hide();
-            pt_mid_layout->itemAtPosition(row, 2)->widget()->hide();
+            patterns_view->hideRow(i);
         }
     }
-    pt_mid_widget->adjustSize();
 }
 
-void AnalyserConfWindow::closeEvent(QCloseEvent *event)
+void AnalyserConfWindow::reject()
 {
     if (patterns_modified)
     {
@@ -391,7 +321,7 @@ void AnalyserConfWindow::closeEvent(QCloseEvent *event)
             return;
         }
     }
-    QWidget::closeEvent(event);
+    QDialog::reject();
 }
 
 QList<int> AnalyserConfWindow::get_type_id_list()
@@ -404,7 +334,7 @@ QStringList AnalyserConfWindow::get_type_name_list()
     return type_name_list;
 }
 
-QList<pattern> AnalyserConfWindow::get_patterns_list()
+QStandardItemModel* AnalyserConfWindow::get_patterns_model()
 {
-    return patterns_list;
+    return patterns_model;
 }

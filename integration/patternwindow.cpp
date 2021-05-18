@@ -1,32 +1,28 @@
 #include "patternwindow.h"
 #include <QMessageBox>
 
-PatternWindow::PatternWindow(AnalyserConfWindow *w, int pt_idx)
+PatternWindow::PatternWindow(AnalyserConfWindow *w, int row)
 {
+    setWindowTitle("Patron");
+    this->row = row;
     this->setModal(true);
-    this->pt_idx = pt_idx;
     conf_w = w;
-    QList<pattern> pt_list = w->get_patterns_list();
+    QStandardItemModel *patterns_model = w->get_patterns_model();
     QStringList type_name_list = w->get_type_name_list();
     QList<int> type_id_list = w->get_type_id_list();
-    QString type_name;
-    //int type_id = pt_list[pt_idx].type;
-    //int type_idx = 0;
+    QString regex = patterns_model->item(row, 0)->text();
+    QString type_name = patterns_model->item(row, 1)->text();
+
     types_box = new QComboBox;
-    int type_idx = pt_list[pt_idx].type_idx;//type_id_list.indexOf(type_id);
-    if (type_idx < 0)
+    if (type_name == "")
     {
         type_name = "Choisir un type";
         types_box->addItem("Choisir un type");
     }
-    else
-    {
-        type_name = type_name_list[type_idx];
-    }
     gen_lay = new QVBoxLayout;
     but_lay = new QHBoxLayout;
     regex_edit = new QLineEdit;
-    regex_edit->setText(pt_list[pt_idx].regex);
+    regex_edit->setText(regex);
     types_box->addItems(type_name_list);
     types_box->setCurrentText(type_name);
     cancel_but = new QPushButton("Annuler");
@@ -54,10 +50,11 @@ void PatternWindow::validate_clicked()
     if (box_text == "Choisir un type")
     {
         QMessageBox::critical(this, "Validation impossible", "Vous devez choisir un type pour valider votre pattern.");
+        return;
     }
     else
     {
-        emit pattern_modification(pt_idx, regex_edit->text(), box_text);
+        emit pattern_modification(row, regex_edit->text(), box_text);
     }
     this->close();
 }

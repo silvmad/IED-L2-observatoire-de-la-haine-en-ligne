@@ -7,6 +7,7 @@
 
 KeyWordsWindow::KeyWordsWindow(QWidget *parent) : QDialog(parent)
 {
+    setWindowTitle("Mots-clés");
     setModal(true);
     main_layout = new QVBoxLayout(this);
     unsaved_mod = false;
@@ -38,7 +39,6 @@ KeyWordsWindow::KeyWordsWindow(QWidget *parent) : QDialog(parent)
     but_lay->addWidget(close_but);
     but_lay->setAlignment(Qt::AlignRight);
 
-    //main_layout->addWidget(scroll);
     main_layout->addWidget(frame);
     main_layout->addLayout(but_lay);
 
@@ -46,7 +46,7 @@ KeyWordsWindow::KeyWordsWindow(QWidget *parent) : QDialog(parent)
 
     QObject::connect(add_kw_but, SIGNAL(clicked()), this, SLOT(add_kw()));
     QObject::connect(suppr_kw_but, SIGNAL(clicked()), this, SLOT(suppr_kw()));
-    QObject::connect(close_but, SIGNAL(clicked()), this, SLOT(close_clicked()));
+    QObject::connect(close_but, SIGNAL(clicked()), this, SLOT(reject()));
     QObject::connect(save_but, SIGNAL(clicked()), this, SLOT(save_kws()));
     QObject::connect(list_model, SIGNAL(dataChanged(const QModelIndex, const QModelIndex, const QVector<int>)), this, SLOT(list_model_data_changed()));
 }
@@ -56,7 +56,8 @@ void KeyWordsWindow::load_keywords()
     QFile file(KW_FILENAME);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
     {
-
+        QMessageBox::critical(this, "Erreur", "Impossible d'ouvrir le fichier des mots-clés.");
+        close();
     }
     QTextStream stream(&file);
     QString kw, ret;
@@ -73,29 +74,43 @@ void KeyWordsWindow::load_keywords()
     {
         kw = stream.readLine();
         file_kw_list << kw;
-        //QPushButton *pb = new QPushButton("Supprimer");
-        //kw_lay->addRow(kw, pb);
     }
     list_model->setStringList(file_kw_list);
-    /*select_query.exec("select mot from mot_clé;");
+    select_query.exec("select mot from mot_clé;");
     while (select_query.next())
     {
         db_kw_list << select_query.value(0).toString();
     }
-    only_db_kw = db_kw_list.toSet().subtract(file_kw_list.toSet());
-    only_file_kw = file_kw_list.toSet().subtract(db_kw_list.toSet());
-    foreach (const QString kw, only_db_kw)
+    db_kw_list.sort();
+    file_kw_list.sort();
+    if (db_kw_list != file_kw_list)
     {
-        del_query.prepare("delete from mot_clé where mot = ?;");
-        del_query.addBindValue(kw);
-        del_query.exec();
+        QMessageBox::warning(this, "Mise à jour de la base", "Les contenus du fichier mot-clé et de la base de données diffèrent.\n"
+                                   "Le contenu de la base de données va donc être mis à jour.");
+        only_db_kw = db_kw_list.toSet().subtract(file_kw_list.toSet());
+        only_file_kw = file_kw_list.toSet().subtract(db_kw_list.toSet());
+        foreach (const QString kw, only_db_kw)
+        {
+            select_query.prepare("select id_mot_clé from mot_clé where mot = ?");
+            select_query.addBindValue(kw);
+            select_query.exec();
+            select_query.next();
+            /* Il faut d'abord supprimer les entrées de contient pour respecter les contraintes
+             * de clé étrangère */
+            del_query.prepare("delete from contient where id_mot_clé = ?");
+            del_query.addBindValue(select_query.value(0));
+            del_query.exec();
+            del_query.prepare("delete from mot_clé where mot = ?;");
+            del_query.addBindValue(kw);
+            del_query.exec();
+        }
+        foreach (const QString kw, only_file_kw)
+        {
+            insert_query.prepare("insert into mot_clé (mot) values (?);");
+            insert_query.addBindValue(kw);
+            insert_query.exec();
+        }
     }
-    foreach (const QString kw, only_file_kw)
-    {
-        insert_query.prepare("insert into mot_clé (mot) values (?);");
-        insert_query.addBindValue(kw);
-        insert_query.exec();
-    }*/
 }
 
 void KeyWordsWindow::add_kw()
@@ -131,7 +146,7 @@ void KeyWordsWindow::save_kws()
     file.close();
 }
 
-void KeyWordsWindow::close_clicked()
+void KeyWordsWindow::reject()
 {
     int ret;
     if (unsaved_mod)
@@ -142,8 +157,9 @@ void KeyWordsWindow::close_clicked()
             return;
         }
     }
-    this->close();
+    QDialog::reject();
 }
+
 void KeyWordsWindow::list_model_data_changed()
 {
     unsaved_mod = true;

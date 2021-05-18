@@ -16,7 +16,7 @@ ScraperTab::ScraperTab(QWidget *parent) : QWidget(parent)
     top_but_lay->addWidget(kw_but);
     top_but_lay->setAlignment(Qt::AlignRight);
 
-    bot_label = new QLabel("Texte du bas");
+    bot_label = new QLabel("Le scraper est prêt à être lancé.");
     bot_label->setFrameStyle(QFrame::Box);
 
     bot_but_lay = new QHBoxLayout;
@@ -33,6 +33,8 @@ ScraperTab::ScraperTab(QWidget *parent) : QWidget(parent)
 
     QObject::connect(conf_but, SIGNAL(clicked()), this, SLOT(open_conf_win()));
     QObject::connect(kw_but, SIGNAL(clicked()), this, SLOT(open_kw_win()));
+    QObject::connect(start_but, SIGNAL(clicked()), this->parent()->parent(), SLOT(start_scraper()));
+    QObject::connect(stop_but, SIGNAL(clicked()), this->parent()->parent(), SLOT(stop_scraper()));
 }
 
 void ScraperTab::open_conf_win()
@@ -45,4 +47,14 @@ void ScraperTab::open_kw_win()
 {
     KeyWordsWindow *w = new KeyWordsWindow;
     w->show();
+}
+
+void ScraperTab::set_label_started()
+{
+    bot_label->setText("Le scraper est en cours d'exécution.");
+}
+
+void ScraperTab::set_label_stopped()
+{
+    bot_label->setText("Le scraper est arrêté.");
 }

@@ -11,6 +11,8 @@ class ScraperTab : public QWidget
     Q_OBJECT
 public:
     explicit ScraperTab(QWidget *parent = nullptr);
+    void set_label_started();
+    void set_label_stopped();
 
 signals:
 

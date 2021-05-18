@@ -12,6 +12,8 @@ class AnalyserTab : public QWidget
     Q_OBJECT
 public:
     explicit AnalyserTab(QWidget *parent = nullptr);
+    void set_label_started();
+    void set_label_stopped();
 
 signals:
 

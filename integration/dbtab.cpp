@@ -44,29 +44,33 @@ DBTab::DBTab(QWidget *parent) : QWidget(parent)
 void DBTab::save_values()
 {
     int ret;
-    QString hostname, username, user_pw, dbname;
-    hostname = this->hostname->text();
-    username = this->username->text();
-    user_pw = this->user_pw->text();
-    dbname = this->dbname->text();
+    QString old_hostname, old_username, old_user_pw, old_dbname;
     QSqlDatabase db = QSqlDatabase::database();
-    db.setHostName(hostname);
-    db.setUserName(username);
-    db.setPassword(user_pw);
-    db.setDatabaseName(dbname);
+    old_hostname =  db.hostName();
+    old_username = db.userName();
+    old_user_pw = db.password();
+    old_dbname = db.databaseName();
+    db.setHostName(hostname->text());
+    db.setUserName(username->text());
+    db.setPassword(user_pw->text());
+    db.setDatabaseName(dbname->text());
     if (!db.open())
     {
         QMessageBox::critical(this, "Échec de la connexion", "Impossible de se connecter à la base de données avec les informations fournies, elles ne seront donc pas sauvegardées.");
+        db.setHostName(old_hostname);
+        db.setUserName(old_username);
+        db.setPassword(old_user_pw);
+        db.setDatabaseName(old_dbname);
     }
     else
     {
         ret = QMessageBox::warning(this, "Sauvegarde", "Les données existantes seront écrasées, êtes-vous sûr de vouloir continuer ?", QMessageBox::Yes | QMessageBox::No);
         if (ret == QMessageBox::Yes)
         {
-            this->conf.setValue(DB_HOST, hostname);
-            this->conf.setValue(DB_USERNAME, username);
-            this->conf.setValue(DB_USER_PW, user_pw);
-            this->conf.setValue(DB_DBNAME, dbname);
+            this->conf.setValue(DB_HOST, hostname->text());
+            this->conf.setValue(DB_USERNAME, username->text());
+            this->conf.setValue(DB_USER_PW, user_pw->text());
+            this->conf.setValue(DB_DBNAME, dbname->text());
             this->conf.write(CONF_FILENAME);
         }
     }

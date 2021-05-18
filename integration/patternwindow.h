@@ -21,7 +21,7 @@ public slots:
     void validate_clicked();
 
 private:
-    int pt_idx;
+    int row;
     AnalyserConfWindow *conf_w;
     QVBoxLayout *gen_lay;
     QHBoxLayout *but_lay;

@@ -10,18 +10,12 @@
 #include <QScrollArea>
 #include <QDialog>
 #include <QStandardItemModel>
+#include <QTableView>
+#include <QHeaderView>
+
 #include "confarray.h"
 
 #define PATTERNS_FILENAME QString("patterns")
-
-typedef struct pattern {
-    int row;
-    QString regex;
-    // L'index du type dans les listes type_id_list et type_name_list
-    int type_idx;
-    pattern();
-    pattern(int);
-} pattern;
 
 class AnalyserConfWindow : public QDialog
 {
@@ -36,7 +30,7 @@ public:
     void suppr_pattern_from_list(int);
     QList<int> get_type_id_list();
     QStringList get_type_name_list();
-    QList<pattern> get_patterns_list();
+    QStandardItemModel* get_patterns_model();
 
 signals:
 
@@ -46,7 +40,7 @@ public slots:
     void open_mod_pattern_win();
     void modify_pattern(int, QString, QString);
     void save_patterns();
-    void closeEvent(QCloseEvent*);
+    void reject();
     void show_patterns_by_type(QString);
 
     void load_results();
@@ -54,12 +48,13 @@ public slots:
     void new_sample();
 
 private:
-    //ConfArray conf;
     QList<int> type_id_list;
     QStringList type_name_list;
 
-    QStandardItemModel patterns_model;
-    QList<pattern> patterns_list;
+    QStandardItemModel *patterns_model;
+    QStandardItemModel *results_model;
+
+    //QList<pattern> patterns_list;
     bool patterns_modified = false;
 
     // Widgets et layout de la fenêtre
@@ -74,19 +69,19 @@ private:
     //Widgets et layouts de l'onglet patrons.
     QVBoxLayout *pt_layout;
     QHBoxLayout *pt_top_layout;
-    QWidget *pt_mid_widget;
-    QScrollArea *pt_mid_scroll;
-    QGridLayout *pt_mid_layout;
+    QTableView *patterns_view;
     QHBoxLayout *pt_bot_layout;
     QComboBox *pt_select_type;
     QPushButton *pt_add_pattern_button;
-    int grid_row_count = 0;
+    QPushButton *pt_modify_pattern_button;
+    QPushButton *pt_suppr_pattern_button;
 
     //Widgets et layouts de l'onglet résultats.
     QVBoxLayout *rt_layout;
-    QScrollArea *rt_scroll;
+    QTableView *results_view;
+/*    QScrollArea *rt_scroll;
     QWidget *rt_scroll_widget;
-    QVBoxLayout *rt_scroll_lay;
+    QVBoxLayout *rt_scroll_lay;*/
     QHBoxLayout *rt_but_lay;
     QPushButton *rt_redo_analyze_but;
     QPushButton *rt_new_sample_but;
