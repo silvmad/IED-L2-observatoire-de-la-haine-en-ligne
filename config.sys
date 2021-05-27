@@ -1,10 +1,10 @@
-T_api_key	5bt7IQSWYcLSTcybCk5HLS6Iv
-T_api_secret	eUNYvoGrKfn9OJa9RiHl2f5Y90QbTUytzCPCxzPo5vQc2peAMw
-T_api_token	960890997302546432-cudMONFeAToAAwr52q2lOrPS1gOzZZ9
-T_api_token_secret	sOOtrltjtKM7y1ntdVL8nz3goYpsoZ0nAQc89LEpBbxlc
+T_api_key	x
+T_api_secret	x
+T_api_token	x
+T_api_token_secret	x
 Bdd_host	localhost
 Bdd_login	postgres
-Bdd_secret	Rahma2011
+Bdd_secret	mdp
 Bdd	haine_base
 Bdd_table	corpus1
 langue	fr
