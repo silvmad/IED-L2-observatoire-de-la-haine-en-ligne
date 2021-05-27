@@ -6,7 +6,8 @@ CONFIG -= app_bundle
 #CONFIG -= qt
 
 SOURCES += \
-        main.cpp
+        main.cpp \
+    func.cpp
 
 HEADERS += \
     main.h

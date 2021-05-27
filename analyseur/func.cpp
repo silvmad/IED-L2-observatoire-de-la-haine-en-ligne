@@ -1,29 +1,4 @@
-#include <iostream>
-//#include <QFile>
-//#include <QTextStream>
-#include <QtDebug>
-#include "main.h"
-
-using namespace std;
-
-int main(int argc, char** argv)
-{
-    QCoreApplication a(argc, argv);
-    QString patterns_file = "patterns";
-    QMap<int,QStringList> patterns;
-    load_patterns(patterns, patterns_file);
-    QSqlDatabase db = open_db();
-    QSqlQuery query;
-    while (true)
-    {
-        query.exec("select id, contenu from corpus1 where haineux is null order by id limit 10000;");
-        if (query.size() == 0)
-            break; // Pour plus tard : à la place se mettre en pause et attendre un signal du scraper pour recommencer
-        parse_result(query, patterns);
-        query.finish();
-    }
-    return 0;
-}
+#include <main.h>
 
 int load_patterns(QMap<int, QStringList>& patterns, QString file_name)
 {
@@ -31,7 +6,7 @@ int load_patterns(QMap<int, QStringList>& patterns, QString file_name)
     QFile file(file_name);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
     {
-        cout << "Erreur, imposible d'ouvrir le fichier patterns."; //futur : prévenir l'interface
+        exit(PT_FILE_ERR);
     }
     QTextStream stream(&file);
     QString line;
@@ -55,25 +30,55 @@ int add_pattern(QMap<int, QStringList>& patterns, QString regex, int type)
     return 0;
 }
 
+int load_keywords(QList<keyword>& keywords, QString file_name)
+{
+    /* Remplit la liste keywords avec le contenu du fichier keywords. */
+    QFile file(file_name);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        //cout << "Erreur, impossible d'ouvrir le fichier keywords." << endl; //futur : prévenir l'interface
+        exit(KW_FILE_ERR);
+    }
+    QTextStream stream(&file);
+    QString word;
+    QStringList list;
+    QSqlQuery q;
+    while (!stream.atEnd())
+    {
+        word = stream.readLine();
+//        list = line.split('\t');
+        keyword kw;
+        kw.word = word;
+        q.prepare("select id_mot_clé from mot_clé where mot = ?");
+        q.addBindValue(word);
+        q.exec();
+        q.next();
+        kw.id = q.value(0).toInt();
+        keywords << kw;
+    }
+    return 0;
+}
+
 QSqlDatabase open_db()
 {
     QSqlDatabase db = QSqlDatabase::addDatabase("QPSQL");
     db.setHostName("localhost");
     db.setUserName("haine_test_user");
     db.setPassword("haine_test_usermdp");
-    db.setDatabaseName("haine_test");
+    db.setDatabaseName("haine_test2");
     if (!db.open())
     {
-        qDebug("Erreur : impossible d'ouvrir la base de données.");
+        //qDebug("Erreur : impossible d'ouvrir la base de données.");
+        exit(DB_ERR);
     }
     return db;
 }
 
-void parse_result(QSqlQuery query, QMap<int,QStringList> patterns)
+void parse_result(QSqlQuery query, const QMap<int,QStringList>& patterns, const QList<keyword>& keywords)
 {
     bool hateful;
     QString text, id;
-    QMap<int, QStringList>::iterator i;
+    QMap<int, QStringList>::const_iterator i;
     while (query.next())
     {
         hateful = false;
@@ -91,7 +96,17 @@ void parse_result(QSqlQuery query, QMap<int,QStringList> patterns)
                 set_type(id, i.key());
             }
         }
-        if (!hateful)
+        if (hateful)
+        {
+            for (int i = 0; i < keywords.size(); i++)
+            {
+                if (text.contains(keywords[i].word, Qt::CaseInsensitive))
+                {
+                    set_keyword(id, keywords[i].id);
+                }
+            }
+        }
+        else
         {
             set_hateful(id, "false");
         }
@@ -104,6 +119,7 @@ int match(QString text, QStringList list)
     for (int i = 0; i < list.size(); i++)
     {
         regex.setPattern(list[i]);
+        regex.setCaseSensitivity(Qt::CaseInsensitive);
         if (text.contains(regex))
         {
             return i + 1;
@@ -128,4 +144,13 @@ void set_type(QString id, int type)
     update_type.bindValue(":id", id);
     update_type.bindValue(":type", type);
     update_type.exec();
+}
+
+void set_keyword(QString id, int kw_id)
+{
+    QSqlQuery update_kw;
+    update_kw.prepare("insert into contient values (:id, :type);");
+    update_kw.bindValue(":id", id);
+    update_kw.bindValue(":type", kw_id);
+    update_kw.exec();
 }
