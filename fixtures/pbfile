@@ -1,8 +1,8 @@
-T_api_key	5bt7IQSWYcLSTcybCk5HLS6Iv
+T_api_key5bt7IQSWYcLSTcybCk5HLS6Iv
 T_api_secret	eUNYvoGrKfn9OJa9RiHl2f5Y90QbTUytzCPCxzPo5vQc2peAMw
 T_api_token	960890997302546432-cudMONFeAToAAwr52q2lOrPS1gOzZZ9
 T_api_token_secret	sOOtrltjtKM7y1ntdVL8nz3goYpsoZ0nAQc89LEpBbxlc
-Bdd_host	localhost
+Bdd_hostlocalhost
 Bdd_login	postgres
 Bdd_secret	Rahma2011
 Bdd	haine_base
@@ -11,4 +11,3 @@ langue	fr
 nbre_tweet	100
 max_tweet	500000
 rate_limite	450
-interval	900

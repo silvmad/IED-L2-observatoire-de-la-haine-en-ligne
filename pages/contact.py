@@ -1,16 +1,24 @@
 import dash_core_components as dcc
 import dash_html_components as html
+import dash_bootstrap_components as dbc
 
 
-
-
-
-layout = html.Div([
-    html.H1("Contacter l'equipe", style={"textAlign": "center"}),
-
-    html.P(
-                    "Vous pouvez contacter l'équipe via le lien suivant:",
-                    className="text-center",
+layout = dbc.Card(
+    [
+        dbc.CardBody(
+            [
+                html.H4("Contacter l'equipe", className="card-title"),
+                html.P(
+                    "Vous pouvez contacter l'équipe via le mail suivant:",
+                    className="card-text",
                 ),
-    dcc.Link('dashboardhaine@gmail.com', href='"mailto:dashboardhaine@gmail.com"')
-    ])
+                dbc.CardLink("dashboardhaine@gmail.com", href="mailto:dashboardhaine@gmail.com"),
+            ]
+        ),
+    ],
+
+    style={"width": "80%",
+            "left": "10%",
+    "margin-right":"-20%,",
+           },
+)
