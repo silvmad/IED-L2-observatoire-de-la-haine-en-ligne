@@ -1,5 +1,5 @@
 from unittest import TestCase
-from projet.connexion.function import load_config, connexion_db
+from connexion.function import load_config, connexion_db
 
 
 class Test(TestCase):

@@ -10,8 +10,8 @@ import plotly.express as px
 import base64
 from io import BytesIO
 
-from projet.connexion.function import *
-from projet.connexion.init_conn import app,con, table_liste
+from dashbord.connexion.function import *
+from dashbord.connexion.init_conn import app,con, table_liste
 
 
 

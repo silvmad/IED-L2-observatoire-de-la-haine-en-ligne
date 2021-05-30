@@ -1,6 +1,6 @@
 import pandas as pd
 from flask_sqlalchemy import SQLAlchemy
-from projet.app import app
+from app import app
 
 
 # fonction de chargement depuis le fichier config

@@ -1,5 +1,5 @@
 from .function import load_config, connexion_db
-from projet.app import app
+from app import app
 
 
 # charger le fichier cnfig

@@ -1,5 +1,5 @@
 from unittest import TestCase
-from projet.connexion.function import read_table
+from connexion.function import read_table
 import pandas as pd
 
 from sqlalchemy import create_engine
