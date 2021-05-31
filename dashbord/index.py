@@ -3,9 +3,9 @@ import dash_html_components as html
 import dash_bootstrap_components as dbc
 from dash.dependencies import Output, Input
 
-from pages import contact, mydashapp, description
+from dashbord.pages import contact, mydashapp, description
 
-from connexion.init_conn import app
+from dashbord.connexion.init_conn import app
 
 # page principale
 app.layout = html.Div([
@@ -46,4 +46,4 @@ def display_page(pathname):
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True, port=8050)
+    app.run_server(debug=True, port=2300)

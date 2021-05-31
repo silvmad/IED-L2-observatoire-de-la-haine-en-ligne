@@ -1,7 +1,3 @@
-import dash_html_components as html
-import dash_core_components as dcc
-import dash_bootstrap_components as dbc
-from datetime import datetime as dt
 from dash.dependencies import Output, Input
 from dash.exceptions import PreventUpdate
 from wordcloud import WordCloud
@@ -10,8 +6,9 @@ import plotly.express as px
 import base64
 from io import BytesIO
 
-from connexion.function import *
-from connexion.init_conn import app,con, table_liste
+from dashbord.connexion.function import *
+from dashbord.connexion.init_conn import app,con, table_liste
+from dashbord.pages.dashcard import *
 
 
 
@@ -20,116 +17,23 @@ from connexion.init_conn import app,con, table_liste
 layout = dbc.Container([
 
     dbc.Row([
-        dbc.Col([dbc.Card(
-            [
-                dbc.CardBody(
-                    [
-                        html.H5(
-                            "Choisissez une date de début et une date de fin:",
-                            className="card-text",
-                        ),
-                        html.Div([dcc.DatePickerRange(
-                            id='my-calender',
-                            end_date_placeholder_text="date de fin",  # text that appears when no end date chosen
-                            start_date_placeholder_text="date de début",  # text that appears when no start date chosen
-                            display_format='D-M-Y',
-                            first_day_of_week=1,  # Display of calendar when open (0 = dimanche)
-                            min_date_allowed=dt(2017, 8, 5),
-                            max_date_allowed=dt(2022, 7, 25),
-                            initial_visible_month=dt(2021, 4, 1),
-                        ),
-                            html.Div(id='calender'),
-                        ]),
-                    ]),
-            ],
-            color="light",   # https://bootswatch.com/default/ for more card colors
-            inverse=True,   # change color of text (black or white)
-            outline=False,  # True = remove the block colors from the background and header
-            )
-        ], xs=12, sm=12, md=12, lg=12, xl=12),
+        dbc.Col([card_titre], xs=12, sm=12, md=12, lg=12, xl=12),
     ]),
     dbc.Row([
-        dbc.Col([dbc.Card(
-            [
-                dbc.CardBody(
-                    [
-                        html.H5("Évolution des types de haines dans le temps", className="card-title"),
-                        dcc.Dropdown(id='menu_line', multi=True, value=['homophobie', 'racisme'],
-                                     options=[],placeholder="Selectionnez un type",
-                                     style={"color": "#000000"}
-                                     ),
-                        dcc.Graph(id='line', figure={})
-                    ]
-                ),
-            ],
-            color="light",   # https://bootswatch.com/default/ for more card colors
-            inverse=True,   # change color of text (black or white)
-            outline=False,  # True = remove the block colors from the background and header
-            )
-        ], xs=12, sm=12, md=12, lg=12, xl=12),
+        dbc.Col([card_graphique], xs=12, sm=12, md=12, lg=12, xl=12),
+
     ]),
     dbc.Row([
-        dbc.Col([dbc.Card(
-            [
-                dbc.CardBody(
-                    [
-                        html.H5(
-                            "Répartition par type de haine", className="card-title"),
-                        dcc.Dropdown(id='menu_pie', multi=True, value=['homophobie', 'racisme'],options=[],
-                                     style={"color": "#000000"}
-                                     ),
-                        dcc.Graph(id='mypie', figure={})
-                    ]
-                ),
-            ],
-            color="light",   # https://bootswatch.com/default/ for more card colors
-            inverse=True,   # change color of text (black or white)
-            outline=False,  # True = remove the block colors from the background and header
-        )
-        ], xs=12, sm=12, md=12, lg=4, xl=4),
-        dbc.Col([dbc.Card([
-            dbc.CardBody(
-                [
-                    html.H5("Nuage de mots haineux", className="card-title"),
-                ]
-            ),
-            dbc.Spinner(children=dbc.CardImg(id="wordcloud", title= "Nuage de mots haineux",
-                                              style=
-                                              {
-                                                'width': '100%',
-                                                'height': '470px',
-                                                'textAlign': 'center',
-                                              }
-                                              ),
-                        size="lg", color="primary", type="border", fullscreen=True,),
-        ],
-            color="light",  # https://bootswatch.com/default/ for more card colors
-            inverse=True,   # change color of text (black or white)
-            outline=False,  # True = remove the block colors from the background and header
-            )
-        ], xs=12, sm=12, md=12, lg=4, xl=4),
-        dbc.Col([dbc.Card(
-            [
-                dbc.CardBody(
-                    [
-                        html.H5(
-                            "Répartition des mots haineux par nombre", className="card-title"),
-                        dcc.Dropdown(id='menu_hist', multi=True, value=['bougnoule', 'pd'],options=[],
-                                     style={"color": "#000000"}
-                                     ),
-                        dcc.Graph(id='myhist', figure={}),
-                    ]
-                ),
-            ],
-            color="light",   # https://bootswatch.com/default/ for more card colors
-            inverse=True,   # change color of text (black or white)
-            outline=False,  # True = remove the block colors from the background and header
-        )], xs=12, sm=12, md=12, lg=4, xl=4),
+        dbc.Col([card_pie], xs=12, sm=12, md=12, lg=4, xl=4),
+        dbc.Col([card_img], xs=12, sm=12, md=12, lg=12, xl=4),
+        dbc.Col([card_hist], xs=12, sm=12, md=12, lg=4, xl=4),
+
     ], no_gutters=False, justify='around'
     ),
-    dcc.Interval(id='interval_pg', interval=900000, n_intervals=0),  # activé toutes les 15minutes où quand la page est rechargé
+    dcc.Interval(id='interval_pg', interval=900000, n_intervals=0),  # activated once/week or when page refreshed
     # dcc.Store inside the app that stores the intermediate value
     dcc.Store(id='stockmemo'),
+    # represents the URL bar, doesn't render anything
 ], fluid=True)
 
 

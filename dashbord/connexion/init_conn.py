@@ -1,5 +1,5 @@
 from .function import load_config, connexion_db
-from app import app
+from dashbord.app import app
 
 
 # charger le fichier cnfig
