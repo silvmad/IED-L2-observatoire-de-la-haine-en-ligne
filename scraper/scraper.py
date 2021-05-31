@@ -71,7 +71,6 @@ BDDTABLE = config.get("Bdd_table")
 
 c = connectbdd(HOST, DATABASE, USER, PASSWORD)
 cur = createcursor(c)
-cur = c.cursor()
 
 #setting for interval
 start = round(time.time())
