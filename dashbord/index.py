@@ -3,12 +3,13 @@ import dash_html_components as html
 import dash_bootstrap_components as dbc
 from dash.dependencies import Output, Input
 
-from dashbord.pages import contact, mydashapp, description
+from pages import contact, mydashapp, description
 
-from dashbord.connexion.init_conn import app
+from connexion.init_conn import app
 
 # page principale
 app.layout = html.Div([
+    # represents the URL bar, doesn't render anything
     dcc.Location(id='url', refresh=False),
     dbc.NavbarSimple(id='navdbc', children=[
                         dbc.NavItem(dbc.NavLink("À propos", id="desc",href="/pages/description")),

@@ -1,24 +1,21 @@
-from .function import load_config, connexion_db
-from dashbord.app import app
+from connexion.function import load_config, connexion_db,app
 
-
-# charger le fichier cnfig
+# load the config file
 config = load_config("config.sys")
 
-# exraie les paramètres de connexion du dictionnaire
+# extract the parameters of the connexion from the dictionary
 HOST = config.get("Bdd_host")
 USER = config.get("Bdd_login")
 PASSWORD = config.get("Bdd_secret")
 DATABASE = config.get("Bdd")
 
-# se connecter à la BDD
+# connect to BDD
 con = connexion_db(USER, PASSWORD, HOST, DATABASE)
 
-# pour la mise en ligne sur le site distant
+# for the web deployment
 server = app.server
 
-# listes des tables de la BDD
-table_liste = ['corpus1', 'possede', 'type', 'contient','mot_clé']
+
 
 
 

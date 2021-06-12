@@ -1,5 +1,6 @@
+import unittest
 from unittest import TestCase
-from connexion.function import read_table
+from data.data import read_table,prepare_data
 import pandas as pd
 
 from sqlalchemy import create_engine
@@ -25,9 +26,23 @@ class Test(TestCase):
         df4.to_sql('contient_test', index=False, con=engine)
 
 
-    def test_get_df(self):
+    def test_get_dic(self):
         liste = ['corpus_test','possede_test', 'type_test','contient_test','mot_test']
         results = read_table(liste, con=engine)
+        res= "la table corpus_tes n'existe pas"
+        self.assertIsInstance(results,dict)
+
+
+    def test_faillure_dic(self):
+        liste = ['corpus_tes','possede_test', 'type_test','contient_test','mot_test']
+        results = read_table(liste, con=engine)
+        res= "la table corpus_tes n'existe pas"
+        self.assertEqual(results, res)
+
+    def test_get_df(self):
+        liste = ['corpus_test','possede_test', 'type_test','contient_test','mot_test']
+        res = read_table(liste, con=engine)
+        results= prepare_data(res, liste)
         df = pd.DataFrame({"id": [1, 2, 3,4], "id_type": [1, 2, 3,4],
                          "date": ['2021-01-01 16:00:00', '2021-01-02 16:00:00', '2021-01-03 16:00:00','2021-01-04 16:00:00'],
                          "haineux":[True, True, True, True],
@@ -44,3 +59,6 @@ class Test(TestCase):
         engine.execute("DROP TABLE contient_test")
         engine.execute("DROP TABLE possede_test")
         engine.execute("DROP TABLE mot_test")
+
+if __name__ == '__main__':
+    unittest.main()

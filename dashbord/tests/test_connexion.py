@@ -1,10 +1,11 @@
+import unittest
 from unittest import TestCase
 from connexion.function import load_config, connexion_db
 
 
 class Test(TestCase):
     def test_load_config(self):
-        dic = load_config("../fixtures/configtest.sys")
+        dic = load_config("fixtures/configtest.sys")
         res = {'T_api_key': '5bt7IQSWYcLSTcybCk5HLS6Iv',
                 'T_api_secret': 'eUNYvoGrKfn9OJa9RiHl2f5Y90QbTUytzCPCxzPo5vQc2peAMw',
                 'T_api_token': '960890997302546432-cudMONFeAToAAwr52q2lOrPS1gOzZZ9',
@@ -16,12 +17,12 @@ class Test(TestCase):
         self.assertDictEqual(dic, res)
 
     def test_empty_dic(self):
-        dic = load_config("../fixtures/emptyfile")
+        dic = load_config("fixtures/emptyfile")
         res = "le fichier est vide"
         self.assertEqual(dic, res)
 
     def test_conformity_dic(self):
-        dic = load_config("../fixtures/pbfile")
+        dic = load_config("fixtures/pbfile")
         res = "problème de lecture"
         self.assertEqual(dic, res)
 
@@ -43,7 +44,8 @@ class Test(TestCase):
         self.assertEqual(str(connex), "la connection a echoue")
 
 
-
+if __name__ == '__main__':
+    unittest.main()
 
 
 
