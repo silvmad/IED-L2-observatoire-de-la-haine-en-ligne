@@ -8,7 +8,7 @@
 #                                                                                                          #
 #  It also requires permission to use the Twitter API:  https://developer.twitter.com/en                   #
 #                                                                                                          #
-#    The configuration is in ../config.sys file                                                            #
+#    The configuration is in ../config file                                                                #
 #    the database model:                                                                                   #
 #                                                                                                          #
 #    CREATE TABLE messages (                                                                               #
@@ -18,18 +18,18 @@
 #        Haineux      boolean default NULL                                                                 #
 #    );                                                                                                    #
 #                                                                                                          #
-#  Twitter Scraper version 1.15: file libscraper.py                                                        #
-#        tested under Ubuntu 20.x                                                                          #
-#        dedicated functions for scraper.py                                                                # 
-#            change - global rework for intgration with SystemExit code                                    #
-#                    (error index code: 1 : api, 2 : databade, 3 : config file, 4 : field file, 5,         #
-#                    6 : unexpected)                                                                       #
+#  Twitter Scraper version 1.152: file libscraper.py                                                       #
+#            change - small fix for integration                                                            #  
 #**********************************************************************************************************#                                   
 import os, sys, psycopg2, tweepy
 
 # load config setting
 def load_config(dictionnaire, file):
-     path = os.path.abspath(os.pardir) + "/" + file
+     path1 = os.path.abspath(os.pardir) + "/" + file
+     if(os.path.exists(path1)):
+          path = path1
+     else:
+          path = os.path.abspath(os.pardir) + "/../" + file
      try:
           with open(path, 'r') as flux:
                for ligne in flux.readlines():
@@ -43,7 +43,11 @@ def load_config(dictionnaire, file):
 
 # load search field
 def load_field(liste, file):
-     path = os.path.abspath(os.pardir) + "/" + file
+     path1 = os.path.abspath(os.pardir) + "/" + file
+     if(os.path.exists(path1)):
+          path = path1
+     else:
+          path = os.path.abspath(os.pardir) + "/../" + file
      try:
           with open(path, 'r') as flux:
                for ligne in flux:
@@ -83,13 +87,15 @@ def check_rate(elements, interval, limit):
 #search and registration request
 def scrap(keywords, api, logfile, c, cur, id_erreur, bdd_table, nbr_tweet):
      for element in keywords:
-          for tweet in api.search(q=element, lang="fr", result_type='recent', count=nbr_tweet , tweet_mode='extended'):
-               tweetsafe = clean_tweet(tweet)
-               cur.execute(f"SELECT count(*) FROM {bdd_table} WHERE Contenu LIKE '{tweetsafe}%' AND Date LIKE '{str(tweet.created_at)}';")
-               duplicate_test = cur.fetchone()
-               if(duplicate_test[0] == 0):
-                    scrap_record(duplicate_test, logfile, c, cur, id_erreur, bdd_table, tweet, tweetsafe)
-
+          try:
+               for tweet in api.search(q=element, lang="fr", result_type='recent', count=nbr_tweet , tweet_mode='extended'):
+                    tweetsafe = clean_tweet(tweet)
+                    cur.execute(f"SELECT count(*) FROM {bdd_table} WHERE Contenu LIKE '{tweetsafe}%' AND Date LIKE '{str(tweet.created_at)}';")
+                    duplicate_test = cur.fetchone()
+                    if(duplicate_test[0] == 0):
+                         scrap_record(duplicate_test, logfile, c, cur, id_erreur, bdd_table, tweet, tweetsafe)
+          except tweepy.TweepError:
+               sys.exit(1)
 #database registration
 def scrap_record(duplicate_test, logfile, c, cur, id_erreur, bdd_table, tweet, tweetsafe):
      if(duplicate_test[0] == 0):
