@@ -18,12 +18,10 @@
 #        Haineux      boolean default NULL                                                                 #
 #    );                                                                                                    #
 #                                                                                                          #
-#  Twitter Scraper version 1.15:                                                                           #
+#  Twitter Scraper version 1.151:                                                                          #
 #        tested under Ubuntu 20.x                                                                          #
 #        dedicated functions are in ./libscraper.py now                                                    # 
-#            change - global rework for intgration with SystemExit code                                    #
-#                    (error index code: 1 : api, 2 : databade, 3 : config file, 4 : field file, 5,         #
-#                    6 : unexpected)                                                                       #
+#            change - small fix for integration                                                            #                                                                     #
 #**********************************************************************************************************#                                   
 import tweepy, datetime, time, os , sys
 from libscraper import *
