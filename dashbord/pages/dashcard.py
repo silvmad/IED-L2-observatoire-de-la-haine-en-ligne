@@ -3,6 +3,7 @@ import dash_html_components as html
 import dash_bootstrap_components as dbc
 
 from datetime import datetime as dt
+from datetime import date as d
 
 
 card_calender = dbc.Card(
@@ -19,10 +20,10 @@ card_calender = dbc.Card(
                     end_date_placeholder_text="date de fin",  # text that appears when no end date chosen
                     start_date_placeholder_text="date de début",  # text that appears when no start date chosen
                     display_format='D-M-Y',
-                    first_day_of_week=1,  # Display of calendar when open (0 = dimanche)
+                    first_day_of_week=1,  # Display of calendar when open (0 = sunday)
                     min_date_allowed=dt(2017, 8, 5),
                     max_date_allowed=dt(2022, 7, 25),
-                    initial_visible_month=dt(2021, 4, 1),
+                    initial_visible_month=d.today(),
                 ),
                     html.Div(id='calender'),
                 ]),
@@ -94,15 +95,14 @@ card_img = dbc.Card([
                 html.H5("Nuage de mots haineux", className="card-title"),
             ]
     ),
-    dbc.Spinner(children=dbc.CardImg(id="wordcloud", title="Nuage de mots haineux",
-                                     style=
-                                     {
-                                         'width': '100%',
-                                         'height': '470px',
-                                         'textAlign': 'center',
-                                     }
-                                     ),
-                size="lg", color="primary", type="border", fullscreen=True, ),
+    dbc.CardImg(id="wordcloud", title="Nuage de mots haineux",
+                style=
+                {
+                    'width': '100%',
+                    'height': '470px',
+                    'textAlign': 'center',
+                }
+                ),
 ],
     color="light",  # https://bootswatch.com/default/ for more card colors
     inverse=True,   # change color of text (black or white)
