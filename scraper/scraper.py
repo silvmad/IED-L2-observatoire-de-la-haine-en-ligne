@@ -31,7 +31,6 @@ from libscraper import *
 #**********************************************************************************************************#                                   
 #                                                    Main                                                  #
 #**********************************************************************************************************#                                   
-
 # var init
 config = {}
 keywords = []
@@ -92,6 +91,7 @@ else:
                try:
                     scrap(keywords, api, logfile, c, cur, id_erreur, BDDTABLE, nbr_tweet)
                     print("205 new data available")
+                    sys.stdout.flush()
                except KeyboardInterrupt:
                     status = False  
           else:
