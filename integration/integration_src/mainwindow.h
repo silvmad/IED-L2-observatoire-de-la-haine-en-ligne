@@ -9,8 +9,8 @@
 #include "dbtab.h"
 #include "analysertab.h"
 
-#define SCRAPER_PATH "/home/victor/cours ied/L2/Projet/sources/IED-L2-observatoire-de-la-haine-en-ligne/scraper/scraper.py"
-#define ANALYZER_PATH "/home/victor/cours ied/L2/Projet/sources/build/analyseur/analyseur_src/analyseur_src"
+#define SCRAPER_PATH "../../scraper/scraper.py"
+#define ANALYZER_PATH "../../analyseur/analyseur_src/analyseur_src"
 
 enum { AN_PT_FILE_ERR = 1, AN_KW_FILE_ERR, AN_DB_ERR, AN_CONF_FILE_ERR };
 enum { SC_API_ERR = 1, SC_DB_ERR, SC_CONF_FILE_ERR, SC_KW_FILE_ERR, SC_RATE_ERR, SC_UNEXP_ERR};

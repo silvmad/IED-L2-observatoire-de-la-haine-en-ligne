@@ -154,9 +154,6 @@ void MainWindow::analyser_end_handler(int code)
     case AN_CONF_FILE_ERR :
         QMessageBox::critical(this, "Erreur", "L'analyseur n'arrive pas à lire le fichier de configuration.");
         break;
-    default :
-        QMessageBox::critical(this, "Erreur", "L'analyseur a rencontré une erreur et a quitté.");
-        break;
     }
     analyser_tab->set_label_stopped();
 }
