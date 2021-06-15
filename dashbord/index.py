@@ -7,13 +7,12 @@ from pages import mydashapp, description
 
 from connexion.init_conn import app
 
-# page principale
+# main page
 app.layout = html.Div([
-    # represents the URL bar, doesn't render anything
+    # represents the URL to get a page, doesn't render anything
     dcc.Location(id='url', refresh=False),
     dbc.NavbarSimple(id='navdbc', children=[
                         dbc.NavItem(dbc.NavLink("À propos", id="desc",href="/pages/description")),
-                        dbc.NavItem(dbc.NavLink("Contact", id='contact',href="/pages/contact")),
                         dbc.NavItem(dbc.NavLink("dashboard",id='dashb', href="/pages/mydashapp")),
                         dbc.NavItem(dbc.NavLink("code source",id='source', href="https://github.com/silvmad/IED-L2-observatoire-de-la-haine-en-ligne")),
 
@@ -43,4 +42,4 @@ def display_page(pathname):
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True, port=2300)
+    app.run_server(debug=True)

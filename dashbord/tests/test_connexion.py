@@ -11,7 +11,7 @@ class Test(TestCase):
                 'T_api_token': '960890997302546432-cudMONFeAToAAwr52q2lOrPS1gOzZZ9',
                 'T_api_token_secret': 'sOOtrltjtKM7y1ntdVL8nz3goYpsoZ0nAQc89LEpBbxlc',
                 'Bdd_host': 'localhost', 'Bdd_login': 'postgres', 'Bdd_secret': 'Rahma2011',
-                'Bdd': 'haine_base', 'Bdd_table': 'corpus1', 'langue': 'fr',
+                'Bdd': 'haine_base', 'Bdd_table': 'message', 'langue': 'fr',
                 'nbre_tweet': '100', 'max_tweet': '500000', 'rate_limite': '450', 'interval': '900'}
 
         self.assertDictEqual(dic, res)

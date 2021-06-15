@@ -29,7 +29,6 @@ class Test(TestCase):
     def test_get_dic(self):
         liste = ['corpus_test','possede_test', 'type_test','contient_test','mot_test']
         results = read_table(liste, con=engine)
-        res= "la table corpus_tes n'existe pas"
         self.assertIsInstance(results,dict)
 
 

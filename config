@@ -7,7 +7,7 @@ Bdd_login	login
 Bdd_secret	password
 Bdd	database
 Bdd_table	table
-langue	fr	
+langue	fr
 nbre_tweet	100
 max_tweet	500000
 rate_limite	450
