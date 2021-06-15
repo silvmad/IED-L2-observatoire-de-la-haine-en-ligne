@@ -1,8 +1,7 @@
 import pandas as pd
 
 # table list
-table_liste = ['corpus1', 'possede', 'type', 'contient','mot_clé']
-
+table_liste = ['message', 'possede', 'type', 'contient','mot_clé']
 
 
 def read_table(liste,con):
@@ -14,7 +13,6 @@ def read_table(liste,con):
         except ValueError:
             return "la table %s n'existe pas" %table
     return dic
-
 
 
 def prepare_data(dic, liste):

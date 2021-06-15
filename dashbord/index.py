@@ -3,7 +3,7 @@ import dash_html_components as html
 import dash_bootstrap_components as dbc
 from dash.dependencies import Output, Input
 
-from pages import contact, mydashapp, description
+from pages import mydashapp, description
 
 from connexion.init_conn import app
 
@@ -28,22 +28,18 @@ app.layout = html.Div([
     html.Div(id='page-content')
 ])
 
-# affichage de page par le pathname
+# display the pages according to the pathname
 
 
 @app.callback(Output('page-content', 'children'),
               Input('url', 'pathname'))
 def display_page(pathname):
-    if pathname == '/pages/contact':
-        return contact.layout
-    elif pathname == '/pages/mydashapp':
+    if pathname == '/pages/mydashapp':
         return mydashapp.layout
     elif pathname == '/pages/description':
         return description.layout
     else:
         return mydashapp.layout
-
-
 
 
 if __name__ == '__main__':

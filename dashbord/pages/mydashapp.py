@@ -31,7 +31,7 @@ layout = dbc.Container([
     ], no_gutters=False, justify='around'
     ),
     dcc.Interval(id='interval_pg', interval=900000, n_intervals=0),  # activated every 15min or when page refreshed
-    # dcc.Store inside the app that stores the intermediate value
+    # dcc.Store inside the app that stores the sharing data
     dcc.Store(id='stockmemo'),
 ], fluid=True)
 
@@ -44,8 +44,9 @@ layout = dbc.Container([
               [
                   Input('my-calender', 'start_date'),
                   Input('my-calender', 'end_date'),
+                  Input('interval_pg','n_intervals')
               ])
-def update_data(start_date, end_date):
+def update_data(start_date, end_date,n):
     dff = prepare_data(read_table(table_liste,con),table_liste)
     if (not start_date) and (not end_date):
         # Return all the rows on initial load.

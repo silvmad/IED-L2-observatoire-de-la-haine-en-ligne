@@ -8,7 +8,7 @@
 #                                                                                                          #
 #  It also requires permission to use the Twitter API:  https://developer.twitter.com/en                   #
 #                                                                                                          #
-#    The configuration is in ../config.sys file                                                            #
+#    The configuration is in ../config file                                                                #
 #    the database model:                                                                                   #
 #                                                                                                          #
 #    CREATE TABLE messages (                                                                               #
@@ -18,10 +18,10 @@
 #        Haineux      boolean default NULL                                                                 #
 #    );                                                                                                    #
 #                                                                                                          #
-#  Twitter Scraper version 1.151:                                                                          #
+#  Twitter Scraper version 1.152:                                                                          #
 #        tested under Ubuntu 20.x                                                                          #
 #        dedicated functions are in ./libscraper.py now                                                    # 
-#            change - small fix for integration                                                            #                                                                     #
+#            change - small fix for integration                                                            #
 #**********************************************************************************************************#                                   
 import tweepy, datetime, time, os , sys
 from libscraper import *
@@ -29,6 +29,7 @@ from libscraper import *
 #**********************************************************************************************************#                                   
 #                                                    Main                                                  #
 #**********************************************************************************************************#                                   
+
 # var init
 config = {}
 keywords = []
@@ -40,9 +41,9 @@ tweet = ""
 tweetsafe = "" 
 
 # load settings
-load_config(config, "config.sys")
+load_config(config, "config")
 # load field list
-load_field(keywords, "goliste.txt")
+load_field(keywords, "keywords")
 
 # Twitter auth
 CONSUMER_KEY =  config.get("T_api_key")
@@ -76,7 +77,11 @@ nbr_tweet = config.get("nbre_tweet")
 
 #logfile
 now = datetime.datetime.utcnow()
-logname = os.getcwd()+"/log/log"+str(now)+".json"
+logpath = os.path.abspath(os.pardir) + "/scraper"
+if os.path.isdir(logpath):
+     logname = os.getcwd()+"/log/log"+str(now)+".json"
+else:
+     logname = os.getcwd()+"/../../scraper/log/log"+str(now)+".json"
 logfile = open(logname, 'a')
 logfile.write(f'{{"scraplog" : "{now}"\n "record" : [')
 

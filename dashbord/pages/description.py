@@ -8,35 +8,48 @@ layout = dbc.Card(
             [
                 html.H4("présentation du projet", className="card-title"),
                 html.P(
-                    "Notre projet est de créer un outil qui permette d’étudier les discours de haine sur twitter"
-                    "Cet outil pourra extraire des messages de twitter en fonction de mots-clé prédéfinis, puis les analyser afin de"
-                    "déterminer leur caractère haineux ou non, ainsi que le cas échéant le type de haine concerné. Les données ainsi"
-                    "récoltées et analysées seront ensuite affichées dans une interface web où l’utilisateur final aura la capacité d’en"
-                    "manipuler la présentation.",
+                    "Notre projet s'est porté sur l'observation et la detection de discurs de haine sur des réseaux sociaux et "
+                    "plus particulièrement sur Twitter.",
+
                     className="card-text",
                 ),
-                #dbc.Button("Go somewhere", color="primary"),
-                #dbc.CardFooter("This is the footer"),
-            ]
-        ),
-    ],
+                html.P(
+                    "Nous avons alors élaborer une suite d'outils afin de pouvoir collecter et analyser des messages en temps réel. "
+                    "Cette collecte établie en fonction de mots clés "
+                    "prédéfinis a servi à créer une représentation qualitative et quantitative du phénomène.",
+                    className="card-text",
+                    ),
+                html.P(
+                    "Ce projet s'articule autour de trois modules :", className="card-text", ),
+                html.Br(),
 
-    style={"width": "80%",
-            "left": "10%",
-    "margin-right":"-20%,",
+                html.P(
+                    "- La collecte de données :nous avons choisi d'observer Twitter au vu du volume des messages ce qui permet "
+                    "de palier à toute distorsion de l'observation (automodération ou modération de la plateforme)",
+                    className="card-text", ),
+                html.P(
+                    "- L'Analyse: les messages haineux seront distingués des messages non haineux et catégoriser en type de haine grace à une IA pattern matcher"
+                    "fondé sur des regex",
+                    className="card-text", ),
 
-},
-)
+                html.P(
+                    "- La présentation: via un dashboard permet une compéhension directe et rapide des résultats par n'importe quel utilisateur.",
 
-"""html.Div([
-    html.H4("présentation du projet", style={"textAlign": "center"}),
+                    className="card-text", ),
 
-    html.H5(
-            "Notre projet est de créer un outil qui permette d’étudier les discours de haine sur twitter"),
-    html.H5( "Cet outil pourra extraire des messages de twitter en fonction de mots-clé prédéfinis, puis les analyser afin de"
-            "déterminer leur caractère haineux ou non, ainsi que le cas échéant le type de haine concerné. Les données ainsi"
-            "récoltées et analysées seront ensuite affichées dans une interface web où l’utilisateur final aura la capacité d’en"
-            "manipuler la présentation."
+                html.P(
+                    "L'objectif du projet est de faciliter l'accès aux données à l'aide d'une UI. Ceci afin de permettre son utilisation à un maximum d'utilisateur et ce, "
+                    "quelque soit leur maitrise de l'outil informatique comme par exemple les étudiants en sociologie ou autres qui s'interesserait au phénomène de haine sur le net",
 
+                    className="card-text", ),
+                html.Br(),
+                html.P(
+                    "Vous pouvez contacter l'équipe via le mail suivant:",
+                    className="card-text",
                 ),
-    ])"""
+                dbc.CardFooter( children= (dbc.CardLink("dashboardhaine@gmail.com", href=""), ),),
+            ],
+            style={"width": "100%", "left": "50%", "margin-right": "30%","text-align": "justify", "text-justify": "inter-word"},
+            ),
+    ])
+
