@@ -30,7 +30,7 @@ layout = dbc.Container([
 
     ], no_gutters=False, justify='around'
     ),
-    dcc.Interval(id='interval_pg', interval=900000, n_intervals=0),  # activated every 15min or when page refreshed
+    dcc.Interval(id='interval_pg', interval=300000, n_intervals=0),  # activated every 15min or when page refreshed
     # dcc.Store inside the app that stores the sharing data
     dcc.Store(id='stockmemo'),
 ], fluid=True)
@@ -55,6 +55,8 @@ def update_data(start_date, end_date,n):
     if dfm.empty:
         return dff.to_dict('records')
     return dfm.to_dict('records')
+
+
 
 # share data with dropdowns and generate their options
 @app.callback(

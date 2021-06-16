@@ -6,7 +6,7 @@ Bdd_host	localhost
 Bdd_login	postgres
 Bdd_secret	Rahma2011
 Bdd	haine_base
-Bdd_table	corpus1
+Bdd_table	message
 langue	fr
 nbre_tweet	100
 max_tweet	500000
