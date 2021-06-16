@@ -18,17 +18,17 @@ void TestPatternWindow::initTestCase()
 
 void TestPatternWindow::test_PatternWindow()
 {
-    QTest::ignoreMessage(QtWarningMsg, "QObject::connect: No such slot QWidget::modify_pattern(int, QString, QString)");// in ../../../../IED-L2-observatoire-de-la-haine-en-ligne/integration/integration_src/patternwindow.cpp:48");
+    QTest::ignoreMessage(QtWarningMsg, "QObject::connect: No such slot QWidget::modify_pattern(int, QString, QString)");
     w = new PatternWindow(parent, model, list, 0);
     QCOMPARE(w->types_box->currentText(), "type1");
-    QTest::ignoreMessage(QtWarningMsg, "QObject::connect: No such slot QWidget::modify_pattern(int, QString, QString)");// in ../../../../IED-L2-observatoire-de-la-haine-en-ligne/integration/integration_src/patternwindow.cpp:48");
+    QTest::ignoreMessage(QtWarningMsg, "QObject::connect: No such slot QWidget::modify_pattern(int, QString, QString)");
     w = new PatternWindow(parent, model, list, 1);
     QCOMPARE(w->types_box->currentText(), "Choisir un type");
 }
 
 void TestPatternWindow::test_validate_clicked()
 {
-    QTest::ignoreMessage(QtWarningMsg, "QObject::connect: No such slot QWidget::modify_pattern(int, QString, QString)");// in ../../../../IED-L2-observatoire-de-la-haine-en-ligne/integration/integration_src/patternwindow.cpp:48");
+    QTest::ignoreMessage(QtWarningMsg, "QObject::connect: No such slot QWidget::modify_pattern(int, QString, QString)");
     w = new PatternWindow(parent, model, list, 1);
     w->setModal(false);
     QSignalSpy sig(w,  SIGNAL(pattern_modification(int, QString, QString)));

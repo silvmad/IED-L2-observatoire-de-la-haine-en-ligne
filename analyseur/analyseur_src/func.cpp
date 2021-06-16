@@ -118,7 +118,7 @@ QSqlDatabase open_db(ConfList c)
  * Si le message n'a pas été détecté comme haineux, il est marqué comme non
  * haineux avec la fonction set_hateful.
  * query est la requète dont les résultats sont à analyser.
- * patterns est le dicitonnaire des patrons.
+ * patterns est le dictionnaire des patrons.
  * keywords est la liste des mots-clés. */
 void parse_result(QSqlQuery query, const QMap<int,QStringList>& patterns,
                   const QList<keyword>& keywords)

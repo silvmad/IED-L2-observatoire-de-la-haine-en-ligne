@@ -67,7 +67,7 @@ void TestMainWindow::test_verify_kw_sync()
     stream << "mot6" << endl;
     file.close();
     QTimer::singleShot(50, this, SLOT(close_messagebox()));
-    QCOMPARE(w.verify_kw_sync(), 0);
+    QCOMPARE(w.verify_kw_sync(), -1);
     db.open();
     q.exec("select mot from mot_clé;");
     list.clear();

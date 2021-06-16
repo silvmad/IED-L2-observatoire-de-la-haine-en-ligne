@@ -6,8 +6,11 @@ ScraperTab::ScraperTab(QWidget *parent) : QWidget(parent)
 {
     QVBoxLayout *main_layout = new QVBoxLayout(this);
 
-    QLabel *top_label = new QLabel("Description du scraper");
+    QLabel *top_label = new QLabel("Le scraper permet de récupérer sur twitter des messages contenant des mots-clés.\n\n"
+                                   "Pour cela il doit se connecter à l'api de twitter, ce qui nécessite d'avoir un projet validé sur https://developer.twitter.com/en");
     top_label->setFrameStyle(QFrame::Box);
+    top_label->setAlignment(Qt::AlignTop);
+    top_label->setWordWrap(true);
 
     QHBoxLayout *top_but_lay = new QHBoxLayout;
     QPushButton *conf_but = new QPushButton("Configuration");
@@ -16,8 +19,9 @@ ScraperTab::ScraperTab(QWidget *parent) : QWidget(parent)
     top_but_lay->addWidget(kw_but);
     top_but_lay->setAlignment(Qt::AlignRight);
 
-    bot_label = new QLabel("Le scraper est prêt à être lancé.");
+    bot_label = new QLabel("  Le scraper est prêt à être lancé.");
     bot_label->setFrameStyle(QFrame::Box);
+    bot_label->setFixedHeight(50);
 
     QHBoxLayout *bot_but_lay = new QHBoxLayout;
     QPushButton *start_but = new QPushButton("Démarrer");

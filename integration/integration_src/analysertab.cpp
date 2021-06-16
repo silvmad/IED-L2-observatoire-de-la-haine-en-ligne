@@ -4,10 +4,15 @@
 AnalyserTab::AnalyserTab(QWidget *parent) : QWidget(parent)
 {
     QVBoxLayout *gen_layout = new QVBoxLayout(this);
-    QLabel *top_label = new QLabel("Texte du haut.");
+    QLabel *top_label = new QLabel("L'analyseur permet de déterminer si les messages de la base de données sont haineux et le type de haine concerné.\n\n"
+                                   "Il utilise pour cela des expressions régulières associées à un type (patrons).\n\n"
+                                   "La fenêtre de configuration permet de gérer et de tester les patrons.");
+    top_label->setWordWrap(true);
+    top_label->setAlignment(Qt::AlignTop | Qt::AlignLeft);
     QHBoxLayout *top_button_layout = new QHBoxLayout;
     QPushButton *conf_button = new QPushButton("Configuration");
-    bot_label = new QLabel("L'analyseur est prêt à être lancé.");
+    bot_label = new QLabel("  L'analyseur est prêt à être lancé.");
+    bot_label->setFixedHeight(50);
     QHBoxLayout *bot_buttons_layout = new QHBoxLayout;
     QPushButton *run_button = new QPushButton("Démarrer");
     QPushButton *stop_button = new QPushButton("Arrêter");

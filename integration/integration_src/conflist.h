@@ -5,7 +5,7 @@
 #include <iostream>
 #include <QTextStream>
 
-#define CONF_FILENAME "../../config.sys"
+#define CONF_FILENAME "../../config"
 
 // Noms des champs du fichier du configuration
 #define DB_HOST "Bdd_host"
