@@ -9,7 +9,7 @@ import time
 def test_ppii001(dash_duo):
 
     # 3. define your app inside the test function
-    app = import_app("dashbord.index")
+    app = import_app("dashboard.index")
 
     # 4. host the app locally in a thread, all dash server configs could be
     # passed after the first app argument
