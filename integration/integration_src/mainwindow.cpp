@@ -4,7 +4,7 @@
 
 MainWindow::MainWindow()
 {
-    setWindowTitle("Observatoire de la haine en ligne");
+    setWindowTitle("Détection de haine en ligne");
 
     scraper_process = new QProcess(this);
     scraper_process->setProgram("python3");
@@ -79,7 +79,7 @@ int MainWindow::verify_kw_sync()
                                                                  "Voulez-vous continuer ?", QMessageBox::No | QMessageBox::Yes);
             if (ret == QMessageBox::No)
             {
-                return 0;
+                return -1;
             }
         }
         if (KeyWordsWindow::synchronize_db(file_kw_list, db_kw_list) < 0)
