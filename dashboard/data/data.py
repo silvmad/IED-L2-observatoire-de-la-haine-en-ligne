@@ -1,7 +1,7 @@
 import pandas as pd
 
 # table list
-table_liste = ['message', 'possede', 'type', 'contient','mot_clé']
+table_liste = ['messages', 'possede', 'type', 'contient','mot_clé']
 
 
 def read_table(liste,con):

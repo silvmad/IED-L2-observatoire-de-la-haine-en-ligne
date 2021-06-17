@@ -6,10 +6,10 @@ from connexion.function import load_config, connexion_db
 class Test(TestCase):
     def test_load_config(self):
         dic = load_config("fixtures/configtest.sys")
-        res = {'T_api_key': '5bt7IQSWYcLSTcybCk5HLS6Iv',
-                'T_api_secret': 'eUNYvoGrKfn9OJa9RiHl2f5Y90QbTUytzCPCxzPo5vQc2peAMw',
-                'T_api_token': '960890997302546432-cudMONFeAToAAwr52q2lOrPS1gOzZZ9',
-                'T_api_token_secret': 'sOOtrltjtKM7y1ntdVL8nz3goYpsoZ0nAQc89LEpBbxlc',
+        res = {'T_api_key': 'x',
+                'T_api_secret': 'x',
+                'T_api_token': 'x',
+                'T_api_token_secret': 'x',
                 'Bdd_host': 'localhost', 'Bdd_login': 'postgres', 'Bdd_secret': 'Rahma2011',
                 'Bdd': 'haine_base', 'Bdd_table': 'message', 'langue': 'fr',
                 'nbre_tweet': '100', 'max_tweet': '500000', 'rate_limite': '450', 'interval': '900'}
