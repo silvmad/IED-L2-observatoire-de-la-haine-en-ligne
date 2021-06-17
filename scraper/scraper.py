@@ -65,7 +65,6 @@ HOST = config.get("Bdd_host")
 USER = config.get("Bdd_login")
 PASSWORD = config.get("Bdd_secret")
 DATABASE = config.get("Bdd")
-BDDTABLE = config.get("Bdd_table")
 
 c = connectbdd(HOST, DATABASE, USER, PASSWORD)
 cur = createcursor(c)
@@ -92,7 +91,7 @@ else:
      while(status):
           if(round(time.time())%T_INTERVAL == modulo_start):
                try:
-                    scrap(keywords, api, logfile, c, cur, id_erreur, BDDTABLE, nbr_tweet)
+                    scrap(keywords, api, logfile, c, cur, id_erreur, "messages", nbr_tweet)
                     print("205 new data available")
                     sys.stdout.flush()
                except KeyboardInterrupt:
