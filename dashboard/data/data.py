@@ -1,5 +1,6 @@
 import pandas as pd
 
+
 # table list
 table_liste = ['messages', 'possede', 'type', 'contient','mot_clé']
 
@@ -16,7 +17,7 @@ def read_table(liste,con):
 
 
 def prepare_data(dic, liste):
-    if dic:
+    if dic and isinstance(dic,dict):
         # merge tables
         df = pd.merge(dic[liste[1]], dic[liste[0]][['id', 'date', 'haineux']], on="id")
         df = pd.merge(df, dic[liste[2]], on="id_type")
@@ -27,6 +28,7 @@ def prepare_data(dic, liste):
         # set date column as index
         df.set_index('date', drop=False, inplace=True)
         return df
-    else :
-        return "les tables sont vides"
+    else:
+        return dic
+
 

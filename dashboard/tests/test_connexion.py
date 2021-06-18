@@ -5,7 +5,7 @@ from connexion.function import load_config, connexion_db
 
 class Test(TestCase):
     def test_load_config(self):
-        dic = load_config("fixtures/configtest.sys")
+        dic = load_config("dashboard/fixtures/configtest.sys")
         res = {'T_api_key': 'x',
                 'T_api_secret': 'x',
                 'T_api_token': 'x',
@@ -17,12 +17,12 @@ class Test(TestCase):
         self.assertDictEqual(dic, res)
 
     def test_empty_dic(self):
-        dic = load_config("fixtures/emptyfile")
+        dic = load_config("dashboard/fixtures/emptyfile")
         res = "le fichier est vide"
         self.assertEqual(dic, res)
 
     def test_conformity_dic(self):
-        dic = load_config("fixtures/pbfile")
+        dic = load_config("dashboard/fixtures/pbfile")
         res = "problème de lecture"
         self.assertEqual(dic, res)
 

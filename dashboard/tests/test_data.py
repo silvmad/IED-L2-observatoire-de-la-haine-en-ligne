@@ -51,6 +51,14 @@ class Test(TestCase):
         df.set_index('date', drop=False, inplace=True)
         pd.testing.assert_frame_equal(results, df)
 
+    def test_get_error(self):
+        liste = ['corpus', 'possede_test', 'type_test', 'contient_test', 'mot_test']
+        res = read_table(liste, con=engine)
+        results = prepare_data(res, liste)
+        print (results)
+        err = "la table corpus n'existe pas"
+        self.assertEqual(results, err)
+
     # supprimmer les tables à chaque fin de test
     def tearDown(self):
         engine.execute("DROP TABLE corpus_test")

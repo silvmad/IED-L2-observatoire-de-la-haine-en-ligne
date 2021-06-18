@@ -48,13 +48,20 @@ layout = dbc.Container([
               ])
 def update_data(start_date, end_date,n):
     dff = prepare_data(read_table(table_liste,con),table_liste)
-    if (not start_date) and (not end_date):
-        # Return all the rows on initial load.
-        return dff.to_dict('records')
-    dfm = dff.sort_index().loc[start_date:end_date]
-    if dfm.empty:
-        return dff.to_dict('records')
-    return dfm.to_dict('records')
+    if isinstance(dff,str):
+        print(dff)
+        return
+    if dff.empty:
+        print("les tables sont vides pour le moment")
+        return
+    else:
+        if (not start_date) and (not end_date):
+            # Return all the rows on initial load.
+            return dff.to_dict('records')
+        dfm = dff.sort_index().loc[start_date:end_date]
+        if dfm.empty:
+            return dff.to_dict('records')
+        return dfm.to_dict('records')
 
 
 
@@ -142,6 +149,8 @@ def update_graph(data, mots):
 
 )
 def update_graph(data, nametype):
+    if data is None:
+        raise PreventUpdate
     dff = pd.DataFrame.from_dict(data)
     dff = dff[dff['nom_type'].isin(nametype)]
     dfm = dff.groupby(['nom_type', 'date']).size().reset_index(name='count')
@@ -191,6 +200,8 @@ def plot_wordcloud(data):
         Input('stockmemo', 'mydata'),
     ])
 def make_image(b, data):
+    if data is None:
+        raise PreventUpdate
     # using the share data
     dff = pd.DataFrame.from_dict(data)
     # filter and prepare data
