@@ -1,7 +1,7 @@
 import unittest
 from unittest import TestCase
 from connexion.function import load_config, connexion_db
-
+from unittest.mock import patch
 
 class Test(TestCase):
     def test_load_config(self):
@@ -16,15 +16,15 @@ class Test(TestCase):
 
         self.assertDictEqual(dic, res)
 
-    def test_empty_dic(self):
-        dic = load_config("dashboard/fixtures/emptyfile")
-        res = "le fichier est vide"
-        self.assertEqual(dic, res)
+    @patch('builtins.print')
+    def test_empty_dic(self,mock_print):
+        load_config("dashboard/fixtures/emptyfile")
+        mock_print.assert_called_with("le fichier est vide")
 
-    def test_conformity_dic(self):
-        dic = load_config("dashboard/fixtures/pbfile")
-        res = "problème de lecture"
-        self.assertEqual(dic, res)
+    @patch('builtins.print')
+    def test_conformity_dic(self,mock_print):
+        load_config("dashboard/fixtures/pbfile")
+        mock_print.assert_called_with("problème de lecture")
 
     # à refaire avec une vraie bdd test créé avec le script
     def test_connexion_db(self):
@@ -35,13 +35,15 @@ class Test(TestCase):
         connex = connexion_db(USER, PASSWORD, HOST, DATABASE)
         self.assertEqual(str(connex), "Engine(postgresql://postgres:***@localhost/haine_test)")
 
-    def test_faillure_connexion_db(self):
+
+    @patch('builtins.print')
+    def test_faillure_connexion_db(self, mock_print):
         HOST = "localhost"
         USER = "postgres"
         PASSWORD = "mdp"
         DATABASE = "haine_test"
-        connex = connexion_db(USER, PASSWORD, HOST, DATABASE)
-        self.assertEqual(str(connex), "la connection a echoue")
+        connexion_db(USER, PASSWORD, HOST, DATABASE)
+        mock_print.assert_called_with("la connexion a echoue")
 
 
 if __name__ == '__main__':

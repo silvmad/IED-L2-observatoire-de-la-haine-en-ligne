@@ -3,6 +3,7 @@ import dash
 import dash_bootstrap_components as dbc
 from flask import Flask
 
+
 # using flask server for bdd
 server = Flask(__name__)
 
@@ -32,11 +33,11 @@ def load_config(file):
             try:
                 dic[conf[0]] = conf[1]
             except IndexError:
-                return "problème de lecture"
+                print("problème de lecture")
     if dic:
         return dic
     else:
-        return "le fichier est vide"
+        print("le fichier est vide")
 
 
 # connexion to the BDD
@@ -45,9 +46,12 @@ def connexion_db(user,mdp, host, bdd):
     db = SQLAlchemy(app.server)
     try:
         db.engine.connect()
+        print("la connexion a réussi")
         return db.engine
-    except :
-        return "la connection a echoue"
+    except:
+        print("la connexion a echoue")
+
+
 
 
 

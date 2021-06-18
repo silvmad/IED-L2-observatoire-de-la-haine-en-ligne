@@ -3,6 +3,8 @@ from dash.exceptions import PreventUpdate
 from wordcloud import WordCloud
 import plotly.express as px
 import pandas as pd
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import exc
 
 import base64
 from io import BytesIO
@@ -47,21 +49,24 @@ layout = dbc.Container([
                   Input('interval_pg','n_intervals')
               ])
 def update_data(start_date, end_date,n):
-    dff = prepare_data(read_table(table_liste,con),table_liste)
-    if isinstance(dff,str):
-        print(dff)
-        return
-    if dff.empty:
-        print("les tables sont vides pour le moment")
-        return
-    else:
-        if (not start_date) and (not end_date):
-            # Return all the rows on initial load.
-            return dff.to_dict('records')
-        dfm = dff.sort_index().loc[start_date:end_date]
-        if dfm.empty:
-            return dff.to_dict('records')
-        return dfm.to_dict('records')
+    try:
+        dff = prepare_data(read_table(table_liste,con),table_liste)
+        if isinstance(dff,str):
+            print(dff)
+            return
+        if dff.empty:
+            print("les tables sont vides pour le moment")
+            return
+        else:
+            if (not start_date) and (not end_date):
+                # Return all the rows on initial load.
+                return dff.to_dict('records')
+            dfm = dff.sort_index().loc[start_date:end_date]
+            if dfm.empty:
+                return dff.to_dict('records')
+            return dfm.to_dict('records')
+    except (exc.ArgumentError, NotImplementedError):
+        print("revoir les paramètres de connexion")
 
 
 

@@ -12,8 +12,7 @@ DATABASE = config.get("Bdd")
 # connect to BDD
 con = connexion_db(USER, PASSWORD, HOST, DATABASE)
 
-# for the web deployment
-server = app.server
+
 
 
 
