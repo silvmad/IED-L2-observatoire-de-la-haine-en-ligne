@@ -50,7 +50,7 @@ layout = dbc.Container([
 def update_data(start_date, end_date,n):
     try:
         dff = prepare_data(read_table(table_liste,con),table_liste)
-        if isinstance(dff,str):
+        if isinstance(dff,str) :
             print(dff)
             return
         if dff.empty:
