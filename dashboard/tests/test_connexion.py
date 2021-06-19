@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 class Test(TestCase):
     def test_load_config(self):
-        dic = load_config("dashboard/fixtures/configtest.sys")
+        dic = load_config("fixtures/configtest.sys")
         res = {'T_api_key': 'x',
                 'T_api_secret': 'x',
                 'T_api_token': 'x',
@@ -18,12 +18,12 @@ class Test(TestCase):
 
     @patch('builtins.print')
     def test_empty_dic(self,mock_print):
-        load_config("dashboard/fixtures/emptyfile")
+        load_config("fixtures/emptyfile")
         mock_print.assert_called_with("le fichier est vide")
 
     @patch('builtins.print')
     def test_conformity_dic(self,mock_print):
-        load_config("dashboard/fixtures/pbfile")
+        load_config("fixtures/pbfile")
         mock_print.assert_called_with("problème de lecture")
 
     # à refaire avec une vraie bdd test créé avec le script

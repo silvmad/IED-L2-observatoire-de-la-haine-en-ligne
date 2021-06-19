@@ -55,7 +55,6 @@ class Test(TestCase):
         liste = ['corpus', 'possede_test', 'type_test', 'contient_test', 'mot_test']
         res = read_table(liste, con=engine)
         results = prepare_data(res, liste)
-        print (results)
         err = "la table corpus n'existe pas"
         self.assertEqual(results, err)
 

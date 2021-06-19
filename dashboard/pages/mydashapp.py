@@ -3,7 +3,6 @@ from dash.exceptions import PreventUpdate
 from wordcloud import WordCloud
 import plotly.express as px
 import pandas as pd
-from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import exc
 
 import base64
@@ -27,12 +26,12 @@ layout = dbc.Container([
     ]),
     dbc.Row([
         dbc.Col([card_pie], xs=12, sm=12, md=12, lg=4, xl=4),
-        dbc.Col([card_img], xs=12, sm=12, md=12, lg=12, xl=4),
+        dbc.Col([card_img], xs=12, sm=12, md=12, lg=4, xl=4),
         dbc.Col([card_hist], xs=12, sm=12, md=12, lg=4, xl=4),
 
     ], no_gutters=False, justify='around'
     ),
-    dcc.Interval(id='interval_pg', interval=300000, n_intervals=0),  # activated every 15min or when page refreshed
+    dcc.Interval(id='interval_pg', interval=300000, n_intervals=0),  # activated every 5min or when page refreshed
     # dcc.Store inside the app that stores the sharing data
     dcc.Store(id='stockmemo'),
 ], fluid=True)
