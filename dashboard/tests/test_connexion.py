@@ -10,7 +10,7 @@ class Test(TestCase):
                 'T_api_secret': 'x',
                 'T_api_token': 'x',
                 'T_api_token_secret': 'x',
-                'Bdd_host': 'localhost', 'Bdd_login': 'postgres', 'Bdd_secret': 'Rahma2011',
+                'Bdd_host': 'localhost', 'Bdd_login': 'postgres', 'Bdd_secret': 'mdp',
                 'Bdd': 'haine_base', 'Bdd_table': 'message', 'langue': 'fr',
                 'nbre_tweet': '100', 'max_tweet': '500000', 'rate_limite': '450', 'interval': '900'}
 
@@ -26,14 +26,14 @@ class Test(TestCase):
         load_config("fixtures/pbfile")
         mock_print.assert_called_with("problème de lecture")
 
-    # à refaire avec une vraie bdd test créé avec le script
+
     def test_connexion_db(self):
         HOST = "localhost"
-        USER = "postgres"
-        PASSWORD = "Rahma2011"
-        DATABASE = "haine_test"
+        USER = "haine_obs_user"
+        PASSWORD = "haine_obs_mdp"
+        DATABASE = "haine_obs"
         connex = connexion_db(USER, PASSWORD, HOST, DATABASE)
-        self.assertEqual(str(connex), "Engine(postgresql://postgres:***@localhost/haine_test)")
+        self.assertEqual(str(connex), "Engine(postgresql://haine_obs_user:***@localhost/haine_obs)")
 
 
     @patch('builtins.print')
