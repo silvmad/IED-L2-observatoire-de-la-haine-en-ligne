@@ -1,0 +1,17 @@
+create database haine_obs;
+    create user haine_obs_user with encrypted password 'haine_obs_mdp';
+    grant all privileges on database haine_obs to haine_obs_user ;
+
+    \c haine_obs;
+    CREATE TABLE messages (id serial PRIMARY KEY,
+    contenu text NOT NULL, date character varying(22) NOT NULL,
+    haineux boolean);
+    create table type ( id_type serial PRIMARY KEY, nom_type varchar(64) );
+    create table mot_clé ( id_mot_clé serial PRIMARY KEY, mot varchar(64));
+    create table possede ( id integer references messages,
+    id_type integer references type,
+    PRIMARY KEY(id, id_type));
+    create table contient ( id integer references messages,
+    id_mot_clé integer references mot_clé,
+    PRIMARY KEY (id, id_mot_clé));
+    grant all privileges on contient, messages, mot_clé, possede, type, type_id_type_seq, mot_clé_id_mot_clé_seq, messages_id_seq to haine_obs_user;
